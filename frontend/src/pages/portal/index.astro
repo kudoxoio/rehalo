@@ -1,0 +1,116 @@
+---
+/**
+ * pages/portal/index.astro
+ *
+ * Vista principal del portal del paciente.
+ * Próxima cita, plan HEP del día, progreso, mensajes recientes.
+ */
+import PortalLayout from "@layouts/PortalLayout.astro";
+import Icon from "@ui/Icon.astro";
+
+const proximaCita = {
+  fecha: "Mañana",
+  hora: "10:30",
+  profesional: "Lic. Ana Rodríguez",
+  box: "Box 2",
+  direccion: "Av. Rehabilitación 1234, Consultorio 5",
+};
+
+const planHoy = [
+  { ejercicio: "Sentadilla isométrica", series: "3 × 30s", completado: true },
+  { ejercicio: "Puente de glúteo", series: "3 × 12", completado: true },
+  { ejercicio: "Estiramiento isquiotibial", series: "2 × 45s", completado: false },
+];
+
+const progreso = {
+  sesiones: 12,
+  dolorInicial: 8,
+  dolorActual: 3,
+  metaAlcanzada: 73,
+};
+---
+
+<PortalLayout title="Mi portal — Rehalo">
+  <div slot="topbar">
+    <h1 class="text-xl font-semibold tracking-tight">Hola, ¿cómo te sentís hoy?</h1>
+  </div>
+
+  <!-- Próxima cita -->
+  <section class="rounded-lg border border-border bg-card p-6">
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div class="flex gap-4">
+        <div class="flex size-12 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <Icon name="calendar-event" class="size-6" />
+        </div>
+        <div>
+          <p class="text-sm text-muted-foreground">Próxima cita</p>
+          <p class="text-lg font-semibold">
+            {proximaCita.fecha} a las {proximaCita.hora} hs
+          </p>
+          <p class="text-sm text-muted-foreground">
+            con {proximaCita.profesional} · {proximaCita.box}
+          </p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <a href="/portal/appointments" class="inline-flex h-9 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-accent">
+          Ver detalle
+        </a>
+        <a href="/portal/messages" class="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          <Icon name="message-circle" class="size-4" /> Contactar
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plan HEP del día + Progreso -->
+  <div class="mt-6 grid gap-6 lg:grid-cols-3">
+    <div class="rounded-lg border border-border bg-card lg:col-span-2">
+      <div class="flex items-center justify-between border-b border-border p-4">
+        <h2 class="font-semibold">Tu plan de hoy</h2>
+        <span class="text-xs text-muted-foreground">1 de 3 completado</span>
+      </div>
+      <ul class="divide-y divide-border">
+        {planHoy.map((e) => (
+          <li class="flex items-center gap-4 p-4">
+            <div class={`flex size-8 items-center justify-center rounded-full ${e.completado ? "bg-primary text-primary-foreground" : "border border-border"}`}>
+              {e.completado ? <Icon name="check" class="size-4" /> : <Icon name="barbell" class="size-4" />}
+            </div>
+            <div class="flex-1">
+              <p class={`font-medium ${e.completado ? "line-through text-muted-foreground" : ""}`}>{e.ejercicio}</p>
+              <p class="text-sm text-muted-foreground">{e.series}</p>
+            </div>
+            {!e.completado && (
+              <button class="rounded-md bg-accent px-3 py-1 text-xs font-medium text-accent-foreground hover:bg-accent/80">
+                Iniciar
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="rounded-lg border border-border bg-card p-6">
+      <h2 class="font-semibold">Tu progreso</h2>
+      <p class="mt-1 text-sm text-muted-foreground">12 sesiones completadas</p>
+
+      <div class="mt-6">
+        <p class="text-sm font-medium">Dolor (escala 0-10)</p>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span class="text-3xl font-bold text-primary">{progreso.dolorActual}</span>
+          <span class="text-sm text-muted-foreground line-through">{progreso.dolorInicial}</span>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <div class="flex items-center justify-between text-sm font-medium">
+          <span>Meta de recuperación</span>
+          <span>{progreso.metaAlcanzada}%</span>
+        </div>
+        <div class="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+          <div class="h-full bg-primary" style={`width: ${progreso.metaAlcanzada}%`}></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</PortalLayout>

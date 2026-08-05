@@ -1,0 +1,212 @@
+---
+/**
+ * pages/dashboard/patients/index.astro
+ *
+ * Lista de pacientes con búsqueda, filtros por estado y terapeuta,
+ * KPIs rápidos del módulo y acciones masivas.
+ */
+import AdminLayout from "@layouts/AdminLayout.astro";
+import Icon from "@ui/Icon.astro";
+import { patients, calculateAge, evaColor, formatDate } from "@lib/mock/patients";
+
+const url = Astro.url;
+const search = url.searchParams.get("q")?.toLowerCase() ?? "";
+const statusFilter = url.searchParams.get("status") ?? "todos";
+const pathologyFilter = url.searchParams.get("pathology") ?? "todas";
+
+const filtered = patients.filter((p) => {
+  const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+  const matchesSearch = !search || fullName.includes(search) || p.dni.includes(search) || p.icd10.toLowerCase().includes(search);
+  const matchesStatus = statusFilter === "todos" || p.status === statusFilter;
+  const matchesPathology = pathologyFilter === "todas" || p.primaryPathology === pathologyFilter;
+  return matchesSearch && matchesStatus && matchesPathology;
+});
+
+const totalActivos = patients.filter((p) => p.status === "activo").length;
+const promedioEva = (
+  patients.reduce((acc, p) => acc + p.painScale.eva, 0) / patients.length
+).toFixed(1);
+const conAlertas = patients.filter((p) => p.painScale.eva >= 7).length;
+const pathologies = [...new Set(patients.map((p) => p.primaryPathology))].sort();
+---
+
+<AdminLayout title="Pacientes — Rehalo">
+  <!-- Header -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-sm font-medium text-muted-foreground">Expediente clínico</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight">Pacientes</h1>
+      <p class="mt-1 text-sm text-muted-foreground">
+        {filtered.length} de {patients.length} pacientes
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent">
+        <Icon name="clipboard-list" class="size-4" />
+        Exportar HL7 FHIR
+      </button>
+      <a
+        href="/dashboard/patients/new"
+        class="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+      >
+        <Icon name="plus" class="size-4" />
+        Nuevo paciente
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI strip -->
+  <section class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="surface-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Activos</p>
+        <div class="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Icon name="users" class="size-4" />
+        </div>
+      </div>
+      <p class="kpi-number mt-3">{totalActivos}</p>
+      <p class="mt-1 text-xs text-muted-foreground">de {patients.length} totales</p>
+    </div>
+
+    <div class="surface-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">EVA promedio</p>
+        <div class="flex size-8 items-center justify-center rounded-lg bg-info/10 text-info">
+          <Icon name="chart-line" class="size-4" />
+        </div>
+      </div>
+      <p class="kpi-number mt-3">{promedioEva}<span class="text-base font-medium text-muted-foreground">/10</span></p>
+      <p class="mt-1 text-xs text-muted-foreground">Escala visual analógica</p>
+    </div>
+
+    <div class="surface-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Alertas clínicas</p>
+        <div class="flex size-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+          <Icon name="alert-triangle" class="size-4" />
+        </div>
+      </div>
+      <p class="kpi-number mt-3">{conAlertas}</p>
+      <p class="mt-1 text-xs text-muted-foreground">EVA ≥ 7/10</p>
+    </div>
+
+    <div class="surface-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Adherencia HEP</p>
+        <div class="flex size-8 items-center justify-center rounded-lg bg-success/10 text-success">
+          <Icon name="clipboard-check" class="size-4" />
+        </div>
+      </div>
+      <p class="kpi-number mt-3">73<span class="text-base font-medium text-muted-foreground">%</span></p>
+      <p class="mt-1 text-xs delta-positive">+8% vs mes anterior</p>
+    </div>
+  </section>
+
+  <!-- Filtros -->
+  <section class="surface-card mt-6 p-4">
+    <form method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div class="relative flex-1">
+        <Icon name="calendar" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="search"
+          name="q"
+          value={search}
+          placeholder="Buscar por nombre, DNI o CIE-10…"
+          class="h-10 w-full rounded-lg border border-border bg-card pl-9 pr-4 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+        />
+      </div>
+      <select name="status" class="h-10 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20">
+        <option value="todos" selected={statusFilter === "todos"}>Todos los estados</option>
+        <option value="activo" selected={statusFilter === "activo"}>Activos</option>
+        <option value="alta" selected={statusFilter === "alta"}>Dados de alta</option>
+        <option value="inactivo" selected={statusFilter === "inactivo"}>Inactivos</option>
+      </select>
+      <select name="pathology" class="h-10 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20">
+        <option value="todas">Todas las patologías</option>
+        {pathologies.map((p) => (
+          <option value={p} selected={pathologyFilter === p}>{p}</option>
+        ))}
+      </select>
+      <button type="submit" class="inline-flex h-10 items-center gap-2 rounded-lg bg-foreground px-4 text-sm font-medium text-background hover:bg-foreground/90">
+        Filtrar
+      </button>
+    </form>
+  </section>
+
+  <!-- Tabla -->
+  <section class="surface-card mt-6 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-border bg-muted/30 text-left">
+            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Paciente</th>
+            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Edad</th>
+            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Patología</th>
+            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">CIE-10</th>
+            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">EVA</th>
+            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Seguro</th>
+            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Estado</th>
+            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          {filtered.map((p) => {
+            const initials = (p.firstName[0] + p.lastName[0]).toUpperCase();
+            const evaVariant = evaColor(p.painScale.eva);
+            return (
+              <tr class="transition-colors hover:bg-muted/30">
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="avatar-fallback flex size-9 items-center justify-center text-sm">{initials}</div>
+                    <div>
+                      <p class="text-sm font-semibold text-foreground">{p.firstName} {p.lastName}</p>
+                      <p class="font-mono text-xs text-muted-foreground">{p.dni}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-4 text-sm">{calculateAge(p.birthDate)} años</td>
+                <td class="px-5 py-4 text-sm">{p.primaryPathology}</td>
+                <td class="px-5 py-4">
+                  <code class="rounded bg-muted px-2 py-0.5 font-mono text-xs">{p.icd10}</code>
+                </td>
+                <td class="px-5 py-4">
+                  <span class={`chip chip-${evaVariant}`}>
+                    EVA {p.painScale.eva}/10
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-sm">{p.insurance.company}</td>
+                <td class="px-5 py-4">
+                  <span class={`chip ${p.status === "activo" ? "chip-success" : "chip-neutral"}`}>
+                    {p.status === "activo" ? "Activo" : p.status === "alta" ? "Alta" : "Inactivo"}
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-right">
+                  <a
+                    href={`/dashboard/patients/${p.id}`}
+                    class="inline-flex h-8 items-center gap-1 rounded-md px-2 text-sm font-medium text-primary hover:bg-accent"
+                  >
+                    Ver
+                    <Icon name="calendar" class="size-3.5 rotate-180" />
+                  </a>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+    {filtered.length === 0 && (
+      <div class="flex flex-col items-center justify-center gap-3 p-12 text-center">
+        <div class="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <Icon name="users" class="size-6" />
+        </div>
+        <p class="text-sm font-medium">No se encontraron pacientes</p>
+        <p class="text-xs text-muted-foreground">Probá ajustar los filtros o crear un nuevo paciente.</p>
+      </div>
+    )}
+    <div class="flex items-center justify-between border-t border-border bg-muted/20 px-5 py-3 text-xs text-muted-foreground">
+      <span>Mostrando {filtered.length} resultados</span>
+      <span>Última actualización: {formatDate(new Date().toISOString(), "datetime")}</span>
+    </div>
+  </section>
+</AdminLayout>

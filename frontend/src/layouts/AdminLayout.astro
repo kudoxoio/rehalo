@@ -1,0 +1,42 @@
+---
+/**
+ * AdminLayout.astro
+ *
+ * Layout para todas las páginas del dashboard administrativo.
+ * Sidebar colapsable estilo ACRU (light). Sin topbar — el usuario vive
+ * en el footer del sidebar como dropdown con cerrar sesión.
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Sidebar from "@ui/sidebar/Sidebar.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const userName = Astro.cookies.get("rehalo_user_name")?.value ?? "Equipo";
+const userRole =
+  Astro.cookies.get("rehalo_role")?.value === "therapist"
+    ? "Fisioterapeuta"
+    : "Administrador";
+const userEmail =
+  Astro.cookies.get("rehalo_user_name")?.value?.toLowerCase().replace(/\s+/g, ".") +
+  "@rehalo.app";
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="flex min-h-screen">
+    <Sidebar
+      variant="admin"
+      userName={userName}
+      userRole={userRole}
+      userEmail={userEmail}
+    />
+
+    <main id="admin-main-wrap" class="flex-1 md:ml-64">
+      <slot />
+    </main>
+  </div>
+</BaseLayout>

@@ -1,0 +1,52 @@
+---
+/**
+ * pages/dashboard/treatment/index.astro
+ *
+ * Vista de planes de tratamiento (Spec 2.1 — Plans + HEP).
+ * Por ahora un placeholder hasta conectar las notas SOAP completas.
+ */
+import AdminLayout from "@layouts/AdminLayout.astro";
+import Icon from "@ui/Icon.astro";
+import { patients } from "@lib/mock/patients";
+
+const activePatients = patients.filter((p) => p.status === "activo");
+---
+
+<AdminLayout title="Tratamiento — Rehalo">
+  <header class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Planes de tratamiento</h1>
+      <p class="mt-1 text-sm text-muted-foreground">
+        Planes activos, HEP (Home Exercise Program) y objetivos por paciente
+      </p>
+    </div>
+    <button class="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
+      <Icon name="plus" class="size-4" />
+      Nuevo plan
+    </button>
+  </header>
+
+  <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {activePatients.map((p) => (
+      <a href={`/dashboard/patients/${p.id}`} class="surface-card p-5 transition-colors hover:bg-accent">
+        <div class="flex items-start gap-3">
+          <div class="avatar-fallback flex size-12 shrink-0 items-center justify-center">
+            {p.firstName[0]}{p.lastName[0]}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-semibold">{p.firstName} {p.lastName}</p>
+            <p class="truncate text-xs text-muted-foreground">{p.primaryPathology} · {p.icd10}</p>
+            <div class="mt-2 flex items-center gap-2 text-xs">
+              <span class="rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+                EVA {p.painScale.eva}/10
+              </span>
+              <span class="text-muted-foreground">
+                {p.timeline.filter((t) => t.type === "Sesión").length} sesiones
+              </span>
+            </div>
+          </div>
+        </div>
+      </a>
+    ))}
+  </section>
+</AdminLayout>

@@ -1,0 +1,265 @@
+---
+/**
+ * pages/dashboard/patients/new.astro
+ *
+ * Alta de paciente con datos demográficos, contacto de emergencia,
+ * seguro médico, motivo de consulta y consentimiento.
+ *
+ * Spec 2.1 — Alta de paciente.
+ */
+import AdminLayout from "@layouts/AdminLayout.astro";
+import Icon from "@ui/Icon.astro";
+import { actions, isInputError } from "astro:actions";
+
+const result = Astro.getActionResult(actions.patients.create);
+const inputErrors = result && isInputError(result.error) ? result.error.fields : {};
+const genericError =
+  result?.error && !isInputError(result.error) ? result.error.message : undefined;
+---
+
+<AdminLayout title="Nuevo paciente — Rehalo">
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-muted-foreground">
+    <a href="/dashboard/patients" class="hover:text-foreground">Pacientes</a>
+    <Icon name="calendar" class="size-3.5 rotate-180" />
+    <span class="text-foreground">Nuevo paciente</span>
+  </nav>
+
+  <!-- Header -->
+  <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Alta de paciente</h1>
+      <p class="mt-1 text-sm text-muted-foreground">
+        Datos demográficos, contacto de emergencia y seguro médico.
+      </p>
+    </div>
+    <a
+      href="/dashboard/patients"
+      class="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent"
+    >
+      <Icon name="calendar" class="size-4 rotate-180" />
+      Cancelar
+    </a>
+  </div>
+
+  {result?.data?.ok && (
+    <div class="mt-6 rounded-lg border border-primary/20 bg-accent p-4 text-sm text-accent-foreground">
+      <p class="font-semibold">Paciente creado correctamente</p>
+      <p class="mt-1">ID asignado: <code class="font-mono">{result.data.patientId}</code>. Redirigiendo al expediente…</p>
+    </div>
+  )}
+
+  {genericError && (
+    <div class="mt-6 rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+      {genericError}
+    </div>
+  )}
+
+  <form
+    method="POST"
+    action={actions.patients.create}
+    class="mt-6 grid gap-6 lg:grid-cols-2"
+  >
+    <!-- ── Datos demográficos ─────────────────────────────── -->
+    <section class="surface-card p-6 lg:col-span-2">
+      <header class="flex items-center gap-3 border-b border-border pb-4">
+        <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Icon name="user" class="size-5" />
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold">Datos demográficos</h2>
+          <p class="text-xs text-muted-foreground">Información personal del paciente</p>
+        </div>
+      </header>
+
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <div class="field">
+          <label for="firstName" class="field-label">Nombre *</label>
+          <input id="firstName" name="firstName" required class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+          {inputErrors?.firstName && <p class="field-error">{inputErrors.firstName[0]}</p>}
+        </div>
+        <div class="field">
+          <label for="lastName" class="field-label">Apellido *</label>
+          <input id="lastName" name="lastName" required class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+          {inputErrors?.lastName && <p class="field-error">{inputErrors.lastName[0]}</p>}
+        </div>
+        <div class="field">
+          <label for="dni" class="field-label">DNI / Identificación *</label>
+          <input id="dni" name="dni" required placeholder="12.345.678" class="h-10 rounded-lg border border-input bg-card px-3 font-mono text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+          {inputErrors?.dni && <p class="field-error">{inputErrors.dni[0]}</p>}
+        </div>
+        <div class="field">
+          <label for="birthDate" class="field-label">Fecha de nacimiento *</label>
+          <input id="birthDate" name="birthDate" type="date" required class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+          {inputErrors?.birthDate && <p class="field-error">{inputErrors.birthDate[0]}</p>}
+        </div>
+        <div class="field">
+          <label for="sex" class="field-label">Sexo *</label>
+          <select id="sex" name="sex" required class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20">
+            <option value="">Seleccionar…</option>
+            <option value="F">Femenino</option>
+            <option value="M">Masculino</option>
+            <option value="X">Otro / Prefiero no decir</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="phone" class="field-label">Teléfono *</label>
+          <input id="phone" name="phone" type="tel" required placeholder="+54 11 1234-5678" class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+        </div>
+        <div class="field">
+          <label for="email" class="field-label">Email</label>
+          <input id="email" name="email" type="email" placeholder="opcional" class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+        </div>
+        <div class="field sm:col-span-2">
+          <label for="address" class="field-label">Dirección</label>
+          <input id="address" name="address" placeholder="Calle, número, piso" class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+        </div>
+        <div class="field sm:col-span-2">
+          <label for="city" class="field-label">Ciudad</label>
+          <input id="city" name="city" placeholder="CABA, Buenos Aires" class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Contacto de emergencia ─────────────────────────── -->
+    <section class="surface-card p-6">
+      <header class="flex items-center gap-3 border-b border-border pb-4">
+        <div class="flex size-10 items-center justify-center rounded-lg bg-warning/10 text-warning">
+          <Icon name="alert-triangle" class="size-5" />
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold">Contacto de emergencia</h2>
+          <p class="text-xs text-muted-foreground">Persona a contactar en caso de urgencia</p>
+        </div>
+      </header>
+
+      <div class="mt-5 grid gap-4">
+        <div class="field">
+          <label for="emergencyName" class="field-label">Nombre completo *</label>
+          <input id="emergencyName" name="emergencyName" required class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+          {inputErrors?.emergencyName && <p class="field-error">{inputErrors.emergencyName[0]}</p>}
+        </div>
+        <div class="field">
+          <label for="emergencyRelation" class="field-label">Relación *</label>
+          <select id="emergencyRelation" name="emergencyRelation" required class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20">
+            <option value="">Seleccionar…</option>
+            <option value="Esposo/a">Esposo/a</option>
+            <option value="Hijo/a">Hijo/a</option>
+            <option value="Padre/Madre">Padre/Madre</option>
+            <option value="Hermano/a">Hermano/a</option>
+            <option value="Otro familiar">Otro familiar</option>
+            <option value="Amistad">Amistad</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="emergencyPhone" class="field-label">Teléfono *</label>
+          <input id="emergencyPhone" name="emergencyPhone" type="tel" required class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+          {inputErrors?.emergencyPhone && <p class="field-error">{inputErrors.emergencyPhone[0]}</p>}
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Seguro médico ──────────────────────────────────── -->
+    <section class="surface-card p-6">
+      <header class="flex items-center gap-3 border-b border-border pb-4">
+        <div class="flex size-10 items-center justify-center rounded-lg bg-info/10 text-info">
+          <Icon name="shield-lock" class="size-5" />
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold">Seguro médico</h2>
+          <p class="text-xs text-muted-foreground">Cobertura y número de afiliado</p>
+        </div>
+      </header>
+
+      <div class="mt-5 grid gap-4">
+        <div class="field">
+          <label for="insuranceCompany" class="field-label">Obra social / Prepaga *</label>
+          <select id="insuranceCompany" name="insuranceCompany" required class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20">
+            <option value="">Seleccionar…</option>
+            <option value="OSDE">OSDE</option>
+            <option value="Swiss Medical">Swiss Medical</option>
+            <option value="Galeno">Galeno</option>
+            <option value="Medife">Medife</option>
+            <option value="PAMI">PAMI</option>
+            <option value="Particular">Particular</option>
+            <option value="Otra">Otra</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="insurancePlan" class="field-label">Plan</label>
+          <input id="insurancePlan" name="insurancePlan" placeholder="210, Premium, etc." class="h-10 rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+        </div>
+        <div class="field">
+          <label for="memberNumber" class="field-label">Número de afiliado</label>
+          <input id="memberNumber" name="memberNumber" class="h-10 rounded-lg border border-input bg-card px-3 font-mono text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Motivo de consulta ─────────────────────────────── -->
+    <section class="surface-card p-6 lg:col-span-2">
+      <header class="flex items-center gap-3 border-b border-border pb-4">
+        <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Icon name="stethoscope" class="size-5" />
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold">Motivo de consulta inicial</h2>
+          <p class="text-xs text-muted-foreground">Diagnóstico médico de referencia (CIE-10)</p>
+        </div>
+      </header>
+
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <div class="field sm:col-span-2">
+          <label for="icd10" class="field-label">Código CIE-10 *</label>
+          <input id="icd10" name="icd10" required placeholder="M54.5" class="h-10 rounded-lg border border-input bg-card px-3 font-mono text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20" />
+          <p class="field-hint">Formato: letra + 2-3 dígitos (ej: M54.5, S93.4)</p>
+          {inputErrors?.icd10 && <p class="field-error">{inputErrors.icd10[0]}</p>}
+        </div>
+        <div class="field sm:col-span-2">
+          <label for="consultReason" class="field-label">Motivo de consulta *</label>
+          <textarea id="consultReason" name="consultReason" required rows="3" placeholder="Describir síntomas, tiempo de evolución, tratamientos previos…" class="rounded-lg border border-input bg-card px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Consentimiento ─────────────────────────────────── -->
+    <section class="surface-card p-6 lg:col-span-2">
+      <header class="flex items-center gap-3 border-b border-border pb-4">
+        <div class="flex size-10 items-center justify-center rounded-lg bg-success/10 text-success">
+          <Icon name="clipboard-check" class="size-5" />
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold">Consentimiento informado</h2>
+          <p class="text-xs text-muted-foreground">Firma electrónica al inicio del tratamiento</p>
+        </div>
+      </header>
+
+      <label class="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 hover:bg-accent">
+        <input type="checkbox" name="consentSigned" value="true" class="mt-1 size-4 rounded border-input text-primary focus:ring-ring" />
+        <div>
+          <p class="text-sm font-medium">El paciente firma el consentimiento informado digital</p>
+          <p class="mt-1 text-xs text-muted-foreground">
+            Conforme a HIPAA / LFPDPPP / RGPD. Queda registrada la firma con timestamp, IP y hash criptográfico.
+          </p>
+        </div>
+      </label>
+    </section>
+
+    <!-- ── Footer actions ─────────────────────────────────── -->
+    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end lg:col-span-2">
+      <a
+        href="/dashboard/patients"
+        class="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-6 text-sm font-medium hover:bg-accent"
+      >
+        Cancelar
+      </a>
+      <button
+        type="submit"
+        class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+      >
+        <Icon name="check" class="size-4" />
+        Dar de alta y abrir expediente
+      </button>
+    </div>
+  </form>
+</AdminLayout>

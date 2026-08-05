@@ -1,0 +1,379 @@
+---
+/**
+ * pages/dashboard/settings/index.astro
+ *
+ * Vista de Configuración del consultorio.
+ * Secciones: perfil, clínica, notificaciones, agenda, seguridad, datos.
+ */
+import AdminLayout from "@layouts/AdminLayout.astro";
+import Icon from "@ui/Icon.astro";
+
+const userName = Astro.cookies.get("rehalo_user_name")?.value ?? "Equipo";
+const userRole =
+  Astro.cookies.get("rehalo_role")?.value === "therapist"
+    ? "Fisioterapeuta"
+    : "Administrador";
+
+// Configuración mockeada del consultorio
+const clinic = {
+  name: "Centro de Kinesiología Rehalo",
+  cuit: "30-71234567-8",
+  address: "Av. Corrientes 1234, Piso 5",
+  city: "CABA, Buenos Aires",
+  phone: "+54 11 4321-5678",
+  email: "contacto@rehalo.app",
+  hours: "Lunes a Viernes 8:00 – 20:00 · Sábados 9:00 – 13:00",
+};
+
+const sections = [
+  { id: "perfil", label: "Perfil", icon: "user" },
+  { id: "clinica", label: "Clínica", icon: "stethoscope" },
+  { id: "agenda", label: "Agenda", icon: "calendar-event" },
+  { id: "notificaciones", label: "Notificaciones", icon: "bell-ringing" },
+  { id: "seguridad", label: "Seguridad", icon: "shield-lock" },
+  { id: "datos", label: "Datos y backups", icon: "world-upload" },
+];
+---
+
+<AdminLayout title="Configuración — Rehalo">
+  <!-- Header -->
+  <header class="mb-6">
+    <h1 class="text-3xl font-bold tracking-tight">Configuración</h1>
+    <p class="mt-1 text-sm text-muted-foreground">
+      Ajustes del consultorio, perfil, agenda y notificaciones
+    </p>
+  </header>
+
+  <div class="grid gap-6 lg:grid-cols-[240px_1fr]">
+    <!-- Sidebar interno de secciones -->
+    <aside class="surface-card p-3 lg:sticky lg:top-6 lg:self-start">
+      <nav class="space-y-1">
+        {sections.map((s, i) => (
+          <a
+            href={`#${s.id}`}
+            class:list={[
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              i === 0
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            ]}
+          >
+            <Icon name={s.icon} class="size-4" />
+            {s.label}
+          </a>
+        ))}
+      </nav>
+    </aside>
+
+    <!-- Contenido -->
+    <div class="space-y-6">
+      <!-- ─── Perfil ────────────────────────────────────────── -->
+      <section id="perfil" class="surface-card p-6">
+        <header class="mb-4 flex items-center gap-3 border-b border-border pb-4">
+          <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon name="user" class="size-5" />
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold">Perfil</h2>
+            <p class="text-xs text-muted-foreground">Información personal y profesional</p>
+          </div>
+        </header>
+
+        <div class="mb-5 flex items-center gap-4">
+          <div class="avatar-fallback flex size-16 items-center justify-center text-xl">
+            {userName.split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
+          </div>
+          <div>
+            <p class="text-lg font-semibold">{userName}</p>
+            <p class="text-sm text-muted-foreground">{userRole} · Lic. MP 1234</p>
+            <button class="mt-1 text-xs font-medium text-primary hover:underline">Cambiar foto</button>
+          </div>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-sm font-medium">Nombre completo</label>
+            <input
+              type="text"
+              value={userName}
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium">Email</label>
+            <input
+              type="email"
+              value="admin@rehalo.app"
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium">Teléfono</label>
+            <input
+              type="tel"
+              value="+54 11 4321-5678"
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium">Matrícula profesional</label>
+            <input
+              type="text"
+              value="MP 1234"
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="mb-1 block text-sm font-medium">Especialidad</label>
+            <input
+              type="text"
+              value="Kinesiología · Fisioterapia deportiva"
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+        </div>
+
+        <div class="mt-5 flex justify-end gap-2 border-t border-border pt-4">
+          <button class="h-10 rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-accent">
+            Cancelar
+          </button>
+          <button class="h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+            Guardar cambios
+          </button>
+        </div>
+      </section>
+
+      <!-- ─── Clínica ───────────────────────────────────────── -->
+      <section id="clinica" class="surface-card p-6">
+        <header class="mb-4 flex items-center gap-3 border-b border-border pb-4">
+          <div class="flex size-10 items-center justify-center rounded-lg bg-info/10 text-info">
+            <Icon name="stethoscope" class="size-5" />
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold">Clínica</h2>
+            <p class="text-xs text-muted-foreground">Datos fiscales y de funcionamiento</p>
+          </div>
+        </header>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label class="mb-1 block text-sm font-medium">Razón social</label>
+            <input
+              type="text"
+              value={clinic.name}
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium">CUIT</label>
+            <input
+              type="text"
+              value={clinic.cuit}
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 font-mono text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium">Email institucional</label>
+            <input
+              type="email"
+              value={clinic.email}
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="mb-1 block text-sm font-medium">Dirección</label>
+            <input
+              type="text"
+              value={`${clinic.address}, ${clinic.city}`}
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="mb-1 block text-sm font-medium">Horario de atención</label>
+            <input
+              type="text"
+              value={clinic.hours}
+              class="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Agenda ────────────────────────────────────────── -->
+      <section id="agenda" class="surface-card p-6">
+        <header class="mb-4 flex items-center gap-3 border-b border-border pb-4">
+          <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon name="calendar-event" class="size-5" />
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold">Agenda y citas</h2>
+            <p class="text-xs text-muted-foreground">Duración, recordatorios, política no-show</p>
+          </div>
+        </header>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Duración por defecto de las sesiones</p>
+              <p class="text-xs text-muted-foreground">Se usa al crear citas sin tipo específico</p>
+            </div>
+            <select class="h-10 rounded-lg border border-input bg-card px-3 text-sm">
+              <option>30 minutos</option>
+              <option selected>45 minutos</option>
+              <option>60 minutos</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Recordatorios automáticos</p>
+              <p class="text-xs text-muted-foreground">Se envían 24h antes de cada cita</p>
+            </div>
+            <div class="flex gap-3 text-sm">
+              <label class="flex items-center gap-2"><input type="checkbox" checked class="size-4 rounded border-input text-primary" />Email</label>
+              <label class="flex items-center gap-2"><input type="checkbox" checked class="size-4 rounded border-input text-primary" />SMS</label>
+              <label class="flex items-center gap-2"><input type="checkbox" checked class="size-4 rounded border-input text-primary" />WhatsApp</label>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Política de no-show</p>
+              <p class="text-xs text-muted-foreground">2 sin cargo al año · $5.000 adicionales · bloqueo recurrente 7 días</p>
+            </div>
+            <label class="relative inline-flex h-6 w-11 items-center rounded-full bg-primary">
+              <input type="checkbox" checked class="peer sr-only" />
+              <span class="absolute right-1 size-4 rounded-full bg-white transition-transform"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Notificaciones ────────────────────────────────── -->
+      <section id="notificaciones" class="surface-card p-6">
+        <header class="mb-4 flex items-center gap-3 border-b border-border pb-4">
+          <div class="flex size-10 items-center justify-center rounded-lg bg-warning/10 text-warning">
+            <Icon name="bell-ringing" class="size-5" />
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold">Notificaciones</h2>
+            <p class="text-xs text-muted-foreground">Alertas clínicas y operativas</p>
+          </div>
+        </header>
+
+        <div class="space-y-3">
+          {[
+            { label: "Paciente con EVA ≥7/10", desc: "Alerta inmediata al terapeuta asignado", enabled: true },
+            { label: "Consentimiento por vencer", desc: "Avisa 30 días antes del vencimiento", enabled: true },
+            { label: "Inasistencia prolongada", desc: "Paciente sin sesiones hace más de 14 días", enabled: true },
+            { label: "Resumen diario", desc: "Email con la agenda del día siguiente a las 20:00", enabled: false },
+            { label: "Reporte semanal", desc: "Métricas clínicas y administrativas cada lunes", enabled: true },
+          ].map((n) => (
+            <div class="flex items-center justify-between rounded-lg border border-border p-4">
+              <div>
+                <p class="text-sm font-semibold">{n.label}</p>
+                <p class="text-xs text-muted-foreground">{n.desc}</p>
+              </div>
+              <label class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {n.enabled ? 'bg-primary' : 'bg-muted'}">
+                <input type="checkbox" checked={n.enabled} class="peer sr-only" />
+                <span class="absolute size-4 rounded-full bg-white transition-transform {n.enabled ? 'right-1' : 'left-1'}"></span>
+              </label>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- ─── Seguridad ─────────────────────────────────────── -->
+      <section id="seguridad" class="surface-card p-6">
+        <header class="mb-4 flex items-center gap-3 border-b border-border pb-4">
+          <div class="flex size-10 items-center justify-center rounded-lg bg-success/10 text-success">
+            <Icon name="shield-lock" class="size-5" />
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold">Seguridad</h2>
+            <p class="text-xs text-muted-foreground">Contraseña, 2FA y auditoría</p>
+          </div>
+        </header>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Contraseña</p>
+              <p class="text-xs text-muted-foreground">Última actualización hace 42 días</p>
+            </div>
+            <button class="h-9 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent">
+              Cambiar
+            </button>
+          </div>
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Autenticación en dos pasos (2FA)</p>
+              <p class="text-xs text-muted-foreground">App autenticadora (TOTP)</p>
+            </div>
+            <label class="relative inline-flex h-6 w-11 items-center rounded-full bg-primary">
+              <input type="checkbox" checked class="peer sr-only" />
+              <span class="absolute right-1 size-4 rounded-full bg-white"></span>
+            </label>
+          </div>
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Sesiones activas</p>
+              <p class="text-xs text-muted-foreground">2 dispositivos conectados</p>
+            </div>
+            <button class="h-9 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent">
+              Ver sesiones
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Datos y backups ───────────────────────────────── -->
+      <section id="datos" class="surface-card p-6">
+        <header class="mb-4 flex items-center gap-3 border-b border-border pb-4">
+          <div class="flex size-10 items-center justify-center rounded-lg bg-info/10 text-info">
+            <Icon name="world-upload" class="size-5" />
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold">Datos y backups</h2>
+            <p class="text-xs text-muted-foreground">Exportación, retención y compliance</p>
+          </div>
+        </header>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Exportar expedientes HL7 FHIR</p>
+              <p class="text-xs text-muted-foreground">Bundle JSON con todos los pacientes activos</p>
+            </div>
+            <button class="h-9 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent">
+              Exportar
+            </button>
+          </div>
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Cifrado en reposo</p>
+              <p class="text-xs text-muted-foreground">AES-256 con claves en HSM (AWS KMS)</p>
+            </div>
+            <span class="rounded-full bg-success/15 px-3 py-1 text-xs font-semibold text-success">Activo</span>
+          </div>
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Backups automáticos</p>
+              <p class="text-xs text-muted-foreground">Diarios · retención 7 años (LFPDPPP)</p>
+            </div>
+            <span class="rounded-full bg-success/15 px-3 py-1 text-xs font-semibold text-success">Al día</span>
+          </div>
+          <div class="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <p class="text-sm font-semibold">Auditoría</p>
+              <p class="text-xs text-muted-foreground">Última entrada: hace 4 horas · Lic. Ana Rodríguez</p>
+            </div>
+            <a href="/dashboard/patients/p-001" class="h-9 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent inline-flex items-center">
+              Ver bitácora
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</AdminLayout>

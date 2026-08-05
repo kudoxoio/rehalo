@@ -1,0 +1,150 @@
+---
+/**
+ * pages/login.astro
+ *
+ * Login mock con selector de rol. Cualquier email/password pasa (MVP).
+ * Redirige según rol:
+ *   - admin / therapist → /dashboard
+ *   - patient            → /portal
+ *
+ * NOTA: esta página es SERVER-RENDERED (sin prerender) para poder ejecutar
+ * el action y leer cookies de sesión.
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Icon from "@ui/Icon.astro";
+import { actions, isInputError } from "astro:actions";
+
+const next = Astro.url.searchParams.get("next") ?? "";
+
+const result = Astro.getActionResult(actions.auth.login);
+const inputErrors = result && isInputError(result.error) ? result.error.fields : {};
+const genericError =
+  result?.error && !isInputError(result.error) ? result.error.message : undefined;
+
+// 1) Si el action terminó OK → redirigir al destino
+if (result?.data && result.data.ok && result.data.redirect) {
+  return Astro.redirect(result.data.redirect);
+}
+
+// 2) Si ya hay sesión activa y NO estamos en medio de un POST → redirigir
+const justPosted = Astro.url.searchParams.has("_action");
+const existingToken = Astro.cookies.get("rehalo_token")?.value;
+const existingRole = Astro.cookies.get("rehalo_role")?.value;
+if (existingToken && existingRole && !justPosted) {
+  return Astro.redirect(next && next.startsWith("/") ? next : existingRole === "patient" ? "/portal" : "/dashboard");
+}
+
+const roles = [
+  {
+    id: "admin",
+    label: "Administrador",
+    icon: "settings",
+    description: "Dueño o director de clínica",
+  },
+  {
+    id: "therapist",
+    label: "Fisioterapeuta",
+    icon: "stethoscope",
+    description: "Profesional que atiende pacientes",
+  },
+  {
+    id: "patient",
+    label: "Paciente",
+    icon: "user",
+    description: "Acceso al portal del paciente",
+  },
+] as const;
+---
+
+<BaseLayout title="Iniciar sesión — Rehalo" noindex>
+  <div class="container mx-auto flex min-h-[calc(100vh-4rem)] items-center justify-center px-6 py-12">
+    <div class="w-full max-w-lg">
+      <div class="text-center">
+        <div class="mx-auto flex size-12 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <Icon name="stethoscope" class="size-6" />
+        </div>
+        <h1 class="mt-6 text-2xl font-bold tracking-tight">Iniciar sesión</h1>
+        <p class="mt-2 text-sm text-muted-foreground">
+          MVP: cualquier email y contraseña sirve. Elegí tu rol.
+        </p>
+      </div>
+
+      {result?.data?.ok && result.data.redirect && (
+        <div class="mt-6 rounded-md border border-primary/20 bg-accent p-4 text-sm text-accent-foreground">
+          Sesión iniciada como <strong>{result.data.role}</strong>. Redirigiendo…
+        </div>
+      )}
+      {genericError && (
+        <div class="mt-6 rounded-md border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+          {genericError}
+        </div>
+      )}
+
+      <form
+        method="POST"
+        action={actions.auth.login}
+        class="mt-8 space-y-6"
+      >
+        <fieldset>
+          <legend class="text-sm font-medium">¿Cómo vas a entrar?</legend>
+          <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {roles.map((r) => (
+              <label class="cursor-pointer">
+                <input type="radio" name="role" value={r.id} class="peer sr-only" required />
+                <div class="rounded-lg border border-border bg-card p-4 transition-all peer-checked:border-primary peer-checked:bg-accent peer-checked:ring-2 peer-checked:ring-primary/30 hover:border-primary/50">
+                  <div class="flex items-center gap-2">
+                    <Icon name={r.icon} class="size-5 text-primary" />
+                    <span class="font-semibold">{r.label}</span>
+                  </div>
+                  <p class="mt-1 text-xs text-muted-foreground">{r.description}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+          {inputErrors?.role && <p class="mt-2 text-xs text-destructive">{inputErrors.role[0]}</p>}
+        </fieldset>
+
+        <div class="space-y-4">
+          <div>
+            <label for="email" class="text-sm font-medium">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autocomplete="email"
+              placeholder="vos@clinica.com"
+              class="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+            {inputErrors?.email && <p class="mt-1 text-xs text-destructive">{inputErrors.email[0]}</p>}
+          </div>
+          <div>
+            <label for="password" class="text-sm font-medium">Contraseña</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              autocomplete="current-password"
+              placeholder="Mínimo 4 caracteres"
+              class="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+            />
+            {inputErrors?.password && <p class="mt-1 text-xs text-destructive">{inputErrors.password[0]}</p>}
+          </div>
+          <input type="hidden" name="next" value={next} />
+        </div>
+
+        <button
+          type="submit"
+          class="inline-flex h-11 w-full items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+        >
+          Entrar
+        </button>
+      </form>
+
+      <p class="mt-6 text-center text-xs text-muted-foreground">
+        ¿Sos nuevo? <a href="/register" class="font-medium text-primary hover:underline">Solicitar acceso</a>
+      </p>
+    </div>
+  </div>
+</BaseLayout>

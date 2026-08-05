@@ -1,0 +1,14 @@
+---
+/**
+ * pages/logout.astro
+ *
+ * Página vacía: delega al endpoint /api/logout que borra las cookies
+ * y redirige a /. Tenerla como página (en lugar de link directo al API)
+ * evita el 404 cuando se navega a /logout desde el sidebar.
+ */
+import type { GetStaticPaths } from "astro";
+
+export const prerender = false;
+
+return Astro.redirect("/api/logout");
+---

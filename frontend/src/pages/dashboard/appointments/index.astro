@@ -1,0 +1,274 @@
+---
+/**
+ * pages/dashboard/appointments/index.astro
+ *
+ * Agenda clínica (Spec 2.2) — usa una island de React con FullCalendar
+ * para soportar drag&drop, crear/editar/eliminar y cambio de vistas
+ * con buen rendimiento.
+ */
+import AdminLayout from "@layouts/AdminLayout.astro";
+import Icon from "@ui/Icon.astro";
+import AppointmentsCalendar from "@islands/AppointmentsCalendar";
+import {
+  appointments,
+  therapists,
+  appointmentTypes,
+  rooms,
+  waitlist,
+  calendarBlocks,
+  noShowPolicy,
+  getKpis,
+  getTherapistById,
+  getTypeById,
+  formatTime,
+  formatDateLong,
+  statusLabels,
+  statusChipClass,
+  priorityChipClass,
+  blockChipClass,
+} from "@lib/mock/appointments";
+import { patients } from "@lib/mock/patients";
+
+const kpis = getKpis();
+
+const today = new Date("2026-08-05T12:00:00");
+const todayBlocks = calendarBlocks.filter((b) => {
+  const d = new Date(b.start);
+  return d.toDateString() === today.toDateString();
+});
+
+// Lookup estático de clases Tailwind para evitar safelist
+const COLOR_BG: Record<string, string> = {
+  primary: "bg-primary/12",
+  info: "bg-info/12",
+  warning: "bg-warning/12",
+  success: "bg-success/12",
+  destructive: "bg-destructive/12",
+};
+const COLOR_BG_SOFT: Record<string, string> = {
+  primary: "bg-primary/15",
+  info: "bg-info/15",
+  warning: "bg-warning/15",
+  success: "bg-success/15",
+  destructive: "bg-destructive/15",
+};
+const COLOR_TEXT: Record<string, string> = {
+  primary: "text-primary",
+  info: "text-info",
+  warning: "text-warning",
+  success: "text-success",
+  destructive: "text-destructive",
+};
+
+// Datos que envío a la island
+const calendarPatients = patients.map((p) => ({
+  id: p.id,
+  name: `${p.firstName} ${p.lastName}`,
+}));
+
+const calendarTherapists = therapists.map((t) => ({
+  id: t.id,
+  name: t.name,
+  color: t.color,
+}));
+
+const calendarTypes = appointmentTypes.map((t) => ({
+  id: t.id,
+  name: t.name,
+  durationMin: t.durationMin,
+  color: t.color,
+}));
+
+const calendarRooms = rooms.map((r) => ({
+  id: r.id,
+  name: r.name,
+}));
+
+const calendarInitial = appointments.map((a) => ({
+  id: a.id,
+  patientId: a.patientId,
+  patientName: a.patientName,
+  therapistId: a.therapistId,
+  roomId: a.roomId,
+  typeId: a.typeId,
+  start: a.start,
+  end: a.end,
+  status: a.status,
+  notes: a.notes,
+}));
+---
+
+<AdminLayout title="Agenda — Rehalo">
+  <!-- Header -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-sm font-medium text-muted-foreground">Calendario clínico</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight">Agenda</h1>
+      <p class="mt-1 text-sm text-muted-foreground">
+        {formatDateLong(today.toISOString())} · {appointments.length} citas esta semana
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent">
+        <Icon name="list-check" class="size-4" />
+        Lista de espera
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI strip -->
+  <section class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="surface-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Citas hoy</p>
+        <div class="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Icon name="calendar-event" class="size-4" />
+        </div>
+      </div>
+      <p class="kpi-number mt-3">{kpis.today}</p>
+      <p class="mt-1 text-xs text-muted-foreground">7 confirmadas, 2 asistidas</p>
+    </div>
+
+    <div class="surface-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Ocupación</p>
+        <div class="flex size-8 items-center justify-center rounded-lg bg-info/10 text-info">
+          <Icon name="chart-line" class="size-4" />
+        </div>
+      </div>
+      <p class="kpi-number mt-3">{kpis.occupancy}<span class="text-base font-medium text-muted-foreground">%</span></p>
+      <div class="progress-track mt-3">
+        <div class="progress-fill" style={`width: ${kpis.occupancy}%`}></div>
+      </div>
+    </div>
+
+    <div class="surface-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">No-shows hoy</p>
+        <div class="flex size-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+          <Icon name="alert-triangle" class="size-4" />
+        </div>
+      </div>
+      <p class="kpi-number mt-3">{kpis.noShowsToday}</p>
+      <p class="mt-1 text-xs text-muted-foreground">Política: {noShowPolicy.freeNoShowsPerYear} sin cargo / año</p>
+    </div>
+
+    <div class="surface-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Lista de espera</p>
+        <div class="flex size-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
+          <Icon name="hourglass" class="size-4" />
+        </div>
+      </div>
+      <p class="kpi-number mt-3">{kpis.waitlist}</p>
+      <p class="mt-1 text-xs text-muted-foreground">{kpis.upcomingWeek} citas esta semana</p>
+    </div>
+  </section>
+
+  <!-- Layout principal: calendario + panel lateral -->
+  <div class="mt-6 grid gap-6 xl:grid-cols-[1fr_320px]">
+    <!-- ── CALENDARIO (island React) ─────────────────────────── -->
+    <AppointmentsCalendar
+      client:only="react"
+      initialAppointments={calendarInitial}
+      patients={calendarPatients}
+      therapists={calendarTherapists}
+      types={calendarTypes}
+      rooms={calendarRooms}
+    />
+
+    <!-- ── PANEL LATERAL ─────────────────────────────────────── -->
+    <aside class="space-y-4">
+      <!-- Tipos de cita -->
+      <section class="surface-card p-5">
+        <header class="flex items-center justify-between border-b border-border pb-3">
+          <h3 class="text-sm font-semibold">Tipos de cita</h3>
+          <span class="text-[10px] font-medium uppercase text-muted-foreground">{appointmentTypes.length}</span>
+        </header>
+        <ul class="mt-3 space-y-2">
+          {appointmentTypes.map((t) => (
+            <li class="flex items-center gap-3 rounded-lg border border-border p-2.5">
+              <div class={`flex size-8 items-center justify-center rounded-lg ${COLOR_BG[t.color]} ${COLOR_TEXT[t.color]}`}>
+                <Icon name={t.icon} class="size-4" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="truncate text-xs font-semibold">{t.name}</p>
+                <p class="text-[10px] text-muted-foreground">{t.durationMin} min · {t.requiredEquipment.length} {t.requiredEquipment.length === 1 ? "sala" : "salas"}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <!-- Lista de espera -->
+      <section class="surface-card p-5">
+        <header class="flex items-center justify-between border-b border-border pb-3">
+          <h3 class="text-sm font-semibold">Lista de espera</h3>
+          <span class="chip chip-warning">{waitlist.length}</span>
+        </header>
+        <ul class="mt-3 space-y-2">
+          {waitlist.map((w) => {
+            const type = getTypeById(w.typeId);
+            return (
+              <li class="rounded-lg border border-border p-3">
+                <div class="flex items-start justify-between gap-2">
+                  <p class="text-xs font-semibold">{w.patientName}</p>
+                  <span class={`chip ${priorityChipClass[w.priority]} px-1.5 py-0 text-[9px]`}>
+                    {w.priority}
+                  </span>
+                </div>
+                <p class="mt-1 text-[10px] text-muted-foreground">{type?.name} · {formatDateLong(w.desiredDate)}</p>
+                {w.notes && <p class="mt-1 text-[10px] text-muted-foreground italic">"{w.notes}"</p>}
+                <div class="mt-2 flex gap-1">
+                  <button class="flex-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-medium hover:bg-accent">
+                    Reasignar
+                  </button>
+                  <button class="rounded-md border border-border bg-card px-2 py-1 text-[10px] font-medium hover:bg-accent">
+                    <Icon name="x" class="size-3" />
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <!-- Bloqueos del día -->
+      <section class="surface-card p-5">
+        <header class="flex items-center justify-between border-b border-border pb-3">
+          <h3 class="text-sm font-semibold">Bloqueos de hoy</h3>
+          <button class="text-primary hover:underline text-xs font-medium">
+            <Icon name="plus" class="size-3.5" />
+          </button>
+        </header>
+        <ul class="mt-3 space-y-2">
+          {todayBlocks.length === 0 ? (
+            <li class="text-xs text-muted-foreground">Sin bloqueos hoy.</li>
+          ) : todayBlocks.map((b) => (
+            <li class="rounded-lg border border-border p-3">
+              <div class="flex items-center gap-2">
+                <span class={`chip ${blockChipClass[b.type]} px-1.5 py-0 text-[9px]`}>{b.type}</span>
+                <span class="font-mono text-[10px] text-muted-foreground">{formatTime(b.start)}–{formatTime(b.end)}</span>
+              </div>
+              <p class="mt-1 text-xs font-semibold">{b.title}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <!-- Política no-shows -->
+      <section class="surface-card border-l-4 border-warning p-5">
+        <header class="flex items-center gap-2">
+          <Icon name="alert-triangle" class="size-4 text-warning" />
+          <h3 class="text-sm font-semibold">Política no-show</h3>
+        </header>
+        <ul class="mt-3 space-y-1.5 text-xs text-muted-foreground">
+          <li class="flex justify-between"><span>Gratis / año</span><strong class="text-foreground">{noShowPolicy.freeNoShowsPerYear}</strong></li>
+          <li class="flex justify-between"><span>Cargo adicional</span><strong class="text-foreground">${noShowPolicy.chargePerAdditional.toLocaleString("es-AR")}</strong></li>
+          <li class="flex justify-between"><span>Bloqueo recurrencia</span><strong class="text-foreground">{noShowPolicy.recurrenceHoldDays} días</strong></li>
+          <li class="flex justify-between"><span>Auto-bloqueo</span><strong class="text-foreground">{noShowPolicy.autoBlock ? "Activado" : "Desactivado"}</strong></li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+</AdminLayout>

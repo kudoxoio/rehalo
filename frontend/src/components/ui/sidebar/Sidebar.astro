@@ -1,0 +1,278 @@
+---
+/**
+ * Sidebar.astro — estilo ACRU (light, colapsable, footer con user dropdown).
+ *
+ * Props:
+ *  - variant: 'admin' | 'portal' → qué set de navegación mostrar
+ *  - userName, userRole → info del usuario logueado
+ *  - userEmail → mostrado en el footer del sidebar
+ */
+import Icon from "@ui/Icon.astro";
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  badge?: number;
+}
+
+interface Props {
+  variant: "admin" | "portal";
+  userName: string;
+  userRole: string;
+  userEmail?: string;
+}
+
+const { variant, userName, userRole, userEmail = "" } = Astro.props;
+
+const adminNav: NavItem[] = [
+  { href: "/dashboard", label: "Inicio", icon: "layout-dashboard" },
+  { href: "/dashboard/patients", label: "Pacientes", icon: "users" },
+  { href: "/dashboard/appointments", label: "Agenda", icon: "calendar-event" },
+  { href: "/dashboard/treatment", label: "Tratamiento", icon: "stethoscope" },
+  { href: "/dashboard/reports", label: "Reportes", icon: "chart-bar" },
+  { href: "/dashboard/settings", label: "Configuración", icon: "settings" },
+];
+
+const portalNav: NavItem[] = [
+  { href: "/portal", label: "Mi inicio", icon: "home" },
+  { href: "/portal/appointments", label: "Mis citas", icon: "calendar-event" },
+  { href: "/portal/exercises", label: "Mi plan HEP", icon: "barbell" },
+  { href: "/portal/progress", label: "Mi progreso", icon: "chart-line" },
+  { href: "/portal/messages", label: "Mensajes", icon: "message-circle" },
+  { href: "/portal/billing", label: "Mis facturas", icon: "receipt" },
+  { href: "/portal/profile", label: "Mi perfil", icon: "user" },
+];
+
+const nav = variant === "admin" ? adminNav : portalNav;
+const currentPath = Astro.url.pathname;
+
+// Iniciales para avatar fallback
+const initials = userName
+  .split(/\s+/)
+  .map((p) => p[0])
+  .join("")
+  .slice(0, 2)
+  .toUpperCase();
+---
+
+<aside
+  id="app-sidebar"
+  data-collapsed="false"
+  class="app-sidebar fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-card md:flex"
+  data-variant={variant}
+>
+  <!-- Brand -->
+  <div class="flex h-16 items-center gap-2.5 border-b border-border px-5">
+    <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+      <Icon name="stethoscope" class="size-5" />
+    </div>
+    <span class="nav-text text-lg font-bold tracking-tight text-foreground">Rehalo</span>
+    {variant === "admin" && (
+      <span class="nav-text ml-auto rounded-md bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
+        Clínica
+      </span>
+    )}
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 space-y-0.5 overflow-y-auto p-3">
+    {nav.map((item) => {
+      const active = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href + "/"));
+      return (
+        <a
+          href={item.href}
+          class:list={[
+            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            active
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          ]}
+          aria-current={active ? "page" : undefined}
+          title={item.label}
+        >
+          <Icon name={item.icon} class="size-5 shrink-0" />
+          <span class="nav-text flex-1">{item.label}</span>
+          {item.badge !== undefined && item.badge > 0 && (
+            <span class="nav-text ml-auto rounded-full bg-destructive px-2 py-0.5 text-xs font-medium text-destructive-foreground">
+              {item.badge}
+            </span>
+          )}
+        </a>
+      );
+    })}
+  </nav>
+
+  <!-- Collapse button -->
+  <button
+    id="sidebar-collapse-btn"
+    type="button"
+    class="flex items-center gap-2 border-t border-border px-5 py-3 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+    aria-label="Colapsar sidebar"
+    aria-expanded="true"
+  >
+    <svg id="sidebar-collapse-icon" xmlns="http://www.w3.org/2000/svg" class="size-4 shrink-0 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="11 17 6 12 11 7" />
+      <polyline points="18 17 13 12 18 7" />
+    </svg>
+    <span class="nav-text">Colapsar sidebar</span>
+  </button>
+
+  <!-- User footer with dropdown -->
+  <div class="border-t border-border p-3">
+    <div class="relative">
+      <button
+        id="user-menu-trigger"
+        type="button"
+        class="flex w-full items-center gap-3 rounded-lg px-2 py-2 hover:bg-accent"
+        aria-haspopup="menu"
+        aria-expanded="false"
+      >
+        <div class="avatar-fallback flex size-9 shrink-0 items-center justify-center text-sm">
+          {initials || "U"}
+        </div>
+        <div class="nav-text min-w-0 flex-1 text-left">
+          <p class="truncate text-sm font-semibold text-foreground">{userName}</p>
+          <p class="truncate text-xs text-muted-foreground">{userEmail || userRole}</p>
+        </div>
+        <svg class="nav-text size-4 shrink-0 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      <!-- Dropdown menu -->
+      <div
+        id="user-menu"
+        role="menu"
+        class="user-menu-popover hidden w-56 rounded-lg border border-border bg-popover p-1.5 shadow-lg"
+      >
+        <div class="border-b border-border px-3 py-2">
+          <p class="text-sm font-semibold text-popover-foreground">{userName}</p>
+          <p class="truncate text-xs text-muted-foreground">{userEmail || userRole}</p>
+        </div>
+        <a
+          href="/dashboard/settings"
+          role="menuitem"
+          class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-popover-foreground hover:bg-accent"
+        >
+          <Icon name="settings" class="size-4" />
+          Configuración
+        </a>
+        <a
+          href="/logout"
+          role="menuitem"
+          class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+        >
+          <Icon name="logout" class="size-4" />
+          Cerrar sesión
+        </a>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<script>
+  // ─── Sidebar collapse ─────────────────────────────────────
+  const sidebar = document.getElementById("app-sidebar");
+  const collapseBtn = document.getElementById("sidebar-collapse-btn");
+  const collapseIcon = document.getElementById("sidebar-collapse-icon");
+  const STORAGE_KEY = "rehalo:sidebar-collapsed";
+
+  function applyCollapsed(collapsed: boolean) {
+    if (!sidebar) return;
+    sidebar.dataset.collapsed = collapsed ? "true" : "false";
+    if (collapseBtn) collapseBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    if (collapseIcon) collapseIcon.style.transform = collapsed ? "rotate(180deg)" : "rotate(0)";
+    // Ajustar margen del contenedor principal
+    const main = document.getElementById("admin-main-wrap");
+    if (main) {
+      main.classList.toggle("md:ml-64", !collapsed);
+      main.classList.toggle("md:ml-16", collapsed);
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
+    } catch {}
+  }
+
+  if (collapseBtn) {
+    collapseBtn.addEventListener("click", () => {
+      const isCollapsed = sidebar?.dataset.collapsed === "true";
+      applyCollapsed(!isCollapsed);
+    });
+  }
+
+  // Restaurar estado
+  try {
+    if (localStorage.getItem(STORAGE_KEY) === "1") {
+      applyCollapsed(true);
+    }
+  } catch {}
+
+  // ─── User dropdown ────────────────────────────────────────
+  const userTrigger = document.getElementById("user-menu-trigger");
+  const userMenu = document.getElementById("user-menu");
+
+  function closeUserMenu() {
+    if (!userMenu || !userTrigger) return;
+    userMenu.classList.add("hidden");
+    userTrigger.setAttribute("aria-expanded", "false");
+  }
+
+  if (userTrigger && userMenu) {
+    userTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = !userMenu.classList.contains("hidden");
+      if (isOpen) {
+        closeUserMenu();
+      } else {
+        userMenu.classList.remove("hidden");
+        userTrigger.setAttribute("aria-expanded", "true");
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!userMenu.classList.contains("hidden")) {
+        const target = e.target as Node;
+        if (!userMenu.contains(target) && !userTrigger.contains(target)) {
+          closeUserMenu();
+        }
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeUserMenu();
+    });
+  }
+</script>
+
+<style>
+  /* Colapsado: oculta textos, reduce ancho */
+  .app-sidebar[data-collapsed="true"] {
+    width: 4rem; /* 16 */
+  }
+  .app-sidebar[data-collapsed="true"] .nav-text {
+    display: none;
+  }
+  .app-sidebar[data-collapsed="true"] #sidebar-collapse-btn {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .app-sidebar[data-collapsed="true"] #user-menu-trigger {
+    justify-content: center;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  /* Popover del menú de usuario — anclado arriba del trigger */
+  #user-menu {
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+  }
+  .app-sidebar[data-collapsed="true"] #user-menu {
+    left: calc(100% + 0.5rem);
+    bottom: 0;
+  }
+</style>

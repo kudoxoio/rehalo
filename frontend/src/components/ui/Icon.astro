@@ -1,0 +1,31 @@
+---
+/**
+ * Icon.astro
+ *
+ * Wrapper sobre Tabler Icons v3.x.
+ * En v3 los iconos se exportan como SVGs individuales (`@tabler/icons/icons/outline/*.svg`).
+ * Para mantener Astro 100% estático (sin JS en cliente), importamos el SVG como `?raw`
+ * y lo inyectamos con set:html.
+ *
+ * Uso:  <Icon name="stethoscope" class="size-5" />
+ */
+import { getIcon } from "@lib/icons";
+
+interface Props {
+  name: string;
+  class?: string;
+  size?: number | string;
+  stroke?: number;
+}
+
+const { name, class: className = "size-5", size, stroke = 2 } = Astro.props;
+
+const svg = getIcon(name);
+const styleAttr = size !== undefined ? `width:${typeof size === "number" ? size + "px" : size};height:${typeof size === "number" ? size + "px" : size}` : "";
+
+// Inyectamos el SVG original y le forzamos atributos de tamaño y stroke
+const rendered = svg
+  .replace(/<svg([^>]*)>/, `<svg$1 class="${className}" style="${styleAttr}" stroke-width="${stroke}" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">`);
+---
+
+<Fragment set:html={rendered} />

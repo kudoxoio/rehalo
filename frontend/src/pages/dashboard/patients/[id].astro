@@ -1,0 +1,557 @@
+---
+/**
+ * pages/dashboard/patients/[id].astro
+ *
+ * Expediente clínico completo (EMR).
+ * Spec 2.1 — "Historia clínica completa… Evaluación inicial estructurada…
+ * Escalas validadas… Consentimientos… Adjuntos… Historial cronológico…
+ * Control de versiones y auditoría."
+ */
+import AdminLayout from "@layouts/AdminLayout.astro";
+import Icon from "@ui/Icon.astro";
+import {
+  getPatientById,
+  calculateAge,
+  formatDate,
+  evaColor,
+} from "@lib/mock/patients";
+
+export const prerender = false;
+
+const { id } = Astro.params;
+const patient = getPatientById(id!);
+
+if (!patient) {
+  return Astro.redirect("/dashboard/patients");
+}
+
+const initials = (patient.firstName[0] + patient.lastName[0]).toUpperCase();
+const fullName = `${patient.firstName} ${patient.lastName}`;
+const evaVariant = evaColor(patient.painScale.eva);
+
+const tabs = [
+  { id: "resumen", label: "Resumen", icon: "layout-dashboard" },
+  { id: "historia", label: "Historia clínica", icon: "clipboard-list" },
+  { id: "evaluacion", label: "Evaluación inicial", icon: "stethoscope" },
+  { id: "escalas", label: "Escalas validadas", icon: "chart-bar" },
+  { id: "consentimientos", label: "Consentimientos", icon: "clipboard-check" },
+  { id: "adjuntos", label: "Adjuntos", icon: "calendar" },
+  { id: "timeline", label: "Timeline", icon: "history" },
+  { id: "auditoria", label: "Auditoría", icon: "shield-lock" },
+];
+
+const activeTab = Astro.url.searchParams.get("tab") ?? "resumen";
+
+const danielsLabel = (g: number) =>
+  ["", "Contracción visible", "Mov. sin gravedad", "Mov. contra gravedad", "Contra resistencia", "Normal"][g];
+
+const auditIcon = (action: string) => {
+  if (action === "Creación") return "plus";
+  if (action === "Edición") return "settings";
+  if (action === "Firma") return "check";
+  if (action === "Eliminación") return "alert-triangle";
+  return "calendar";
+};
+---
+
+<AdminLayout title={`${fullName} — Rehalo`}>
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-muted-foreground">
+    <a href="/dashboard/patients" class="hover:text-foreground">Pacientes</a>
+    <Icon name="calendar" class="size-3.5 rotate-180" />
+    <span class="text-foreground">{fullName}</span>
+  </nav>
+
+  <!-- Header del paciente -->
+  <div class="surface-card mt-4 p-6">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex items-center gap-4">
+        <div class="avatar-fallback flex size-16 items-center justify-center text-xl">{initials}</div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-bold tracking-tight">{fullName}</h1>
+            <span class={`chip ${patient.status === "activo" ? "chip-success" : "chip-neutral"}`}>
+              {patient.status === "activo" ? "Activo" : patient.status}
+            </span>
+          </div>
+          <div class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            <span><strong class="text-foreground">{calculateAge(patient.birthDate)} años</strong> · {patient.sex === "F" ? "Femenino" : patient.sex === "M" ? "Masculino" : "Otro"}</span>
+            <span class="font-mono">DNI {patient.dni}</span>
+            <span>{patient.email}</span>
+            <span>{patient.phone}</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button class="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent">
+          <Icon name="clipboard-list" class="size-4" />
+          Nueva nota SOAP
+        </button>
+        <button class="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent">
+          <Icon name="calendar-plus" class="size-4" />
+          Agendar cita
+        </button>
+        <button class="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+          <Icon name="check" class="size-4" />
+          Dar alta
+        </button>
+      </div>
+    </div>
+
+    <!-- Strip clínico -->
+    <div class="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-6 md:grid-cols-4">
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Patología principal</p>
+        <p class="mt-1 text-sm font-semibold">{patient.primaryPathology}</p>
+        <code class="mt-0.5 inline-block rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{patient.icd10}</code>
+      </div>
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Dolor (EVA)</p>
+        <div class="mt-1 flex items-center gap-2">
+          <span class={`chip chip-${evaVariant}`}>{patient.painScale.eva}/10</span>
+          <span class="text-xs text-muted-foreground">{evaVariant === "success" ? "Leve" : evaVariant === "warning" ? "Moderado" : "Severo"}</span>
+        </div>
+      </div>
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sesiones</p>
+        <p class="mt-1 text-sm font-semibold">{patient.timeline.filter(t => t.type === "Sesión").length} completadas</p>
+      </div>
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Terapeuta</p>
+        <p class="mt-1 text-sm font-semibold">{patient.therapistId === "th-001" ? "Lic. Ana Rodríguez" : "Lic. Diego Salazar"}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <nav class="mt-6 flex gap-1 overflow-x-auto border-b border-border">
+    {tabs.map((t) => {
+      const active = activeTab === t.id;
+      return (
+        <a
+          href={`/dashboard/patients/${id}?tab=${t.id}`}
+          class:list={[
+            "flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors",
+            active
+              ? "border-primary text-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground",
+          ]}
+        >
+          <Icon name={t.icon} class="size-4" />
+          {t.label}
+        </a>
+      );
+    })}
+  </nav>
+
+  <!-- ─────────── RESUMEN ─────────── -->
+  {activeTab === "resumen" && (
+    <div class="mt-6 grid gap-6 lg:grid-cols-3">
+      <!-- Timeline corta -->
+      <div class="surface-card p-6 lg:col-span-2">
+        <header class="flex items-center justify-between border-b border-border pb-4">
+          <h2 class="font-semibold">Últimos eventos</h2>
+          <a href={`/dashboard/patients/${id}?tab=timeline`} class="text-xs font-medium text-primary hover:underline">
+            Ver todo →
+          </a>
+        </header>
+        <ol class="timeline mt-5">
+          {patient.timeline.slice(-5).reverse().map((e) => (
+            <li class="timeline-item">
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs text-muted-foreground">{formatDate(e.date, "long")}</span>
+                <span class="chip chip-neutral">{e.type}</span>
+              </div>
+              <p class="mt-1 text-sm font-medium">{e.title}</p>
+              {e.description && <p class="mt-0.5 text-sm text-muted-foreground">{e.description}</p>}
+              <p class="mt-0.5 text-xs text-muted-foreground">{e.author}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <!-- Alertas y próximos pasos -->
+      <div class="space-y-4">
+        {patient.painScale.eva >= 7 && (
+          <div class="surface-card border-l-4 border-destructive p-4">
+            <div class="flex gap-3">
+              <Icon name="alert-triangle" class="size-5 shrink-0 text-destructive" />
+              <div>
+                <p class="text-sm font-semibold">Alerta clínica</p>
+                <p class="mt-1 text-xs text-muted-foreground">
+                  EVA {patient.painScale.eva}/10: dolor severo. Considerar escalación terapéutica.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div class="surface-card p-5">
+          <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Próxima cita</p>
+          <p class="mt-2 text-lg font-semibold">Mañana 10:30 hs</p>
+          <p class="text-sm text-muted-foreground">Box 2 · Sesión seguimiento</p>
+          <button class="mt-3 w-full rounded-lg border border-border bg-card py-2 text-sm font-medium hover:bg-accent">
+            Reagendar
+          </button>
+        </div>
+
+        <div class="surface-card p-5">
+          <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Adherencia HEP</p>
+          <div class="progress-track mt-3">
+            <div class="progress-fill" style="width: 73%"></div>
+          </div>
+          <p class="mt-2 text-sm font-semibold">73%<span class="ml-1 text-xs font-normal text-muted-foreground">últimos 7 días</span></p>
+        </div>
+      </div>
+    </div>
+  )}
+
+  <!-- ─────────── HISTORIA CLÍNICA ─────────── -->
+  {activeTab === "historia" && (
+    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+      <section class="surface-card p-6">
+        <h2 class="border-b border-border pb-3 font-semibold">Antecedentes patológicos</h2>
+        <ul class="mt-4 space-y-2">
+          {patient.medicalHistory.pathologies.length === 0 ? (
+            <li class="text-sm text-muted-foreground">Sin antecedentes registrados.</li>
+          ) : patient.medicalHistory.pathologies.map((p) => (
+            <li class="flex items-start gap-2 text-sm">
+              <Icon name="alert-triangle" class="mt-0.5 size-4 shrink-0 text-warning" />
+              {p}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="surface-card p-6">
+        <h2 class="border-b border-border pb-3 font-semibold">Antecedentes quirúrgicos</h2>
+        <ul class="mt-4 space-y-2">
+          {patient.medicalHistory.surgeries.length === 0 ? (
+            <li class="text-sm text-muted-foreground">Sin antecedentes registrados.</li>
+          ) : patient.medicalHistory.surgeries.map((s) => (
+            <li class="flex items-start gap-2 text-sm">
+              <Icon name="settings" class="mt-0.5 size-4 shrink-0 text-info" />
+              {s}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="surface-card p-6">
+        <h2 class="border-b border-border pb-3 font-semibold">Medicación actual</h2>
+        <ul class="mt-4 space-y-2">
+          {patient.medicalHistory.medications.length === 0 ? (
+            <li class="text-sm text-muted-foreground">Sin medicación registrada.</li>
+          ) : patient.medicalHistory.medications.map((m) => (
+            <li class="flex items-start gap-2 text-sm">
+              <Icon name="receipt" class="mt-0.5 size-4 shrink-0 text-primary" />
+              {m}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="surface-card p-6">
+        <h2 class="border-b border-border pb-3 font-semibold">Alergias</h2>
+        <ul class="mt-4 space-y-2">
+          {patient.medicalHistory.allergies.length === 0 ? (
+            <li class="text-sm text-muted-foreground">Sin alergias registradas.</li>
+          ) : patient.medicalHistory.allergies.map((a) => (
+            <li class="flex items-start gap-2 text-sm">
+              <Icon name="alert-triangle" class="mt-0.5 size-4 shrink-0 text-destructive" />
+              {a}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  )}
+
+  <!-- ─────────── EVALUACIÓN INICIAL ─────────── -->
+  {activeTab === "evaluacion" && (
+    <div class="mt-6 grid gap-6">
+      <!-- Dolor EVA -->
+      <section class="surface-card p-6">
+        <h2 class="border-b border-border pb-3 font-semibold">Dolor — Escala Visual Analógica (EVA / NPRS)</h2>
+        <div class="mt-5 grid gap-6 sm:grid-cols-2">
+          <div>
+            <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Puntuación actual</p>
+            <div class="mt-2 flex items-baseline gap-3">
+              <p class="kpi-number">{patient.painScale.eva}</p>
+              <span class={`chip chip-${evaVariant}`}>{evaVariant === "success" ? "Leve" : evaVariant === "warning" ? "Moderado" : "Severo"}</span>
+            </div>
+            <div class="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+              <span>0</span><span>5</span><span>10</span>
+            </div>
+            <div class="progress-track mt-1">
+              <div class="progress-fill" style={`width: ${patient.painScale.eva * 10}%`}></div>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Localización</p>
+            <p class="mt-2 text-sm font-medium">{patient.painScale.location}</p>
+            <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground mt-4">Desde</p>
+            <p class="mt-2 text-sm font-medium">{formatDate(patient.painScale.since, "long")}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Rango de movimiento -->
+      <section class="surface-card p-6">
+        <h2 class="border-b border-border pb-3 font-semibold">Rango de movimiento (goniometría)</h2>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border text-left">
+                <th class="py-2 pr-4 text-xs font-semibold uppercase text-muted-foreground">Articulación</th>
+                <th class="py-2 pr-4 text-xs font-semibold uppercase text-muted-foreground">Movimiento</th>
+                <th class="py-2 pr-4 text-xs font-semibold uppercase text-muted-foreground">Actual</th>
+                <th class="py-2 pr-4 text-xs font-semibold uppercase text-muted-foreground">Normal</th>
+                <th class="py-2 text-xs font-semibold uppercase text-muted-foreground">%</th>
+              </tr>
+            </thead>
+            <tbody>
+              {patient.rom.map((r) => {
+                const pct = Math.round((r.degrees / r.normalDegrees) * 100);
+                const color = pct >= 80 ? "bg-success" : pct >= 60 ? "bg-warning" : "bg-destructive";
+                return (
+                  <tr class="border-b border-border last:border-b-0">
+                    <td class="py-3 pr-4 font-medium">{r.joint}</td>
+                    <td class="py-3 pr-4 text-muted-foreground">{r.movement}</td>
+                    <td class="py-3 pr-4"><span class="font-mono font-semibold">{r.degrees}°</span></td>
+                    <td class="py-3 pr-4 text-muted-foreground">{r.normalDegrees}°</td>
+                    <td class="py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="h-2 w-24 rounded-full bg-muted">
+                          <div class={`h-2 rounded-full ${color}`} style={`width: ${pct}%`}></div>
+                        </div>
+                        <span class="font-mono text-xs">{pct}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Fuerza muscular -->
+      {patient.strength.length > 0 && (
+        <section class="surface-card p-6">
+          <h2 class="border-b border-border pb-3 font-semibold">Fuerza muscular — Escala de Daniels</h2>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {patient.strength.map((s) => (
+              <div class="flex items-center justify-between rounded-lg border border-border p-3">
+                <div>
+                  <p class="text-sm font-medium">{s.muscle}</p>
+                  <p class="text-xs text-muted-foreground">{s.side === "ambos" ? "Ambos lados" : s.side === "izq" ? "Izquierdo" : "Derecho"}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="kpi-number text-2xl">{s.grade}</span>
+                  <span class="text-xs text-muted-foreground">/5</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Pruebas ortopédicas -->
+      {patient.orthopedicTests.length > 0 && (
+        <section class="surface-card p-6">
+          <h2 class="border-b border-border pb-3 font-semibold">Pruebas ortopédicas específicas</h2>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            {patient.orthopedicTests.map((t) => (
+              <div class="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
+                <div>
+                  <p class="text-sm font-medium">{t.name}</p>
+                  {t.notes && <p class="mt-0.5 text-xs text-muted-foreground">{t.notes}</p>}
+                </div>
+                <span class={`chip ${t.positive ? "chip-danger" : "chip-success"}`}>
+                  {t.positive ? "Positivo" : "Negativo"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  )}
+
+  <!-- ─────────── ESCALAS VALIDADAS ─────────── -->
+  {activeTab === "escalas" && (
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {patient.scales.length === 0 ? (
+        <div class="surface-card p-8 text-center sm:col-span-2 lg:col-span-3">
+          <Icon name="chart-bar" class="mx-auto size-8 text-muted-foreground" />
+          <p class="mt-3 text-sm font-medium">Sin escalas registradas</p>
+          <p class="mt-1 text-xs text-muted-foreground">Aplicá Oswestry, DASH, Lysholm, Berg o Tinetti para evaluación funcional.</p>
+        </div>
+      ) : patient.scales.map((s) => {
+        const pct = Math.round((s.score / s.maxScore) * 100);
+        return (
+          <article class="surface-card p-5">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{s.name}</p>
+              <span class="chip chip-neutral">{formatDate(s.date, "short")}</span>
+            </div>
+            <div class="mt-3 flex items-baseline gap-1">
+              <p class="kpi-number">{s.score}</p>
+              <span class="text-sm text-muted-foreground">/ {s.maxScore}</span>
+            </div>
+            <div class="progress-track mt-3">
+              <div class="progress-fill" style={`width: ${pct}%`}></div>
+            </div>
+            <p class="mt-3 text-sm font-medium">{s.interpretation}</p>
+          </article>
+        );
+      })}
+    </div>
+  )}
+
+  <!-- ─────────── CONSENTIMIENTOS ─────────── -->
+  {activeTab === "consentimientos" && (
+    <div class="mt-6 space-y-3">
+      {patient.consents.length === 0 ? (
+        <div class="surface-card p-8 text-center">
+          <Icon name="clipboard-check" class="mx-auto size-8 text-muted-foreground" />
+          <p class="mt-3 text-sm font-medium">Sin consentimientos firmados</p>
+          <button class="mt-4 inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+            <Icon name="plus" class="size-4" /> Generar consentimiento
+          </button>
+        </div>
+      ) : patient.consents.map((c) => {
+        const expired = new Date(c.expiresAt) < new Date("2026-08-05");
+        return (
+          <article class="surface-card flex items-center gap-4 p-4">
+            <div class="flex size-10 items-center justify-center rounded-lg bg-success/10 text-success">
+              <Icon name="check" class="size-5" />
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-semibold">{c.type}</p>
+              <p class="text-xs text-muted-foreground">Firmado por {c.signedBy} · {formatDate(c.signedAt, "long")}</p>
+            </div>
+            <div class="text-right">
+              <span class={`chip ${expired ? "chip-danger" : "chip-success"}`}>
+                {expired ? "Vencido" : "Vigente"}
+              </span>
+              <p class="mt-1 text-xs text-muted-foreground">Vence: {formatDate(c.expiresAt, "short")}</p>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  )}
+
+  <!-- ─────────── ADJUNTOS ─────────── -->
+  {activeTab === "adjuntos" && (
+    <div class="mt-6">
+      <div class="mb-4 flex justify-end">
+        <button class="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+          <Icon name="plus" class="size-4" />
+          Subir archivo
+        </button>
+      </div>
+      {patient.attachments.length === 0 ? (
+        <div class="surface-card p-8 text-center">
+          <Icon name="calendar" class="mx-auto size-8 text-muted-foreground" />
+          <p class="mt-3 text-sm font-medium">Sin adjuntos</p>
+          <p class="mt-1 text-xs text-muted-foreground">Subí RX, RM, ecografías, videos de marcha o fotos clínicas.</p>
+        </div>
+      ) : (
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {patient.attachments.map((a) => (
+            <article class="surface-card overflow-hidden p-0">
+              <div class="flex aspect-video items-center justify-center bg-muted">
+                <Icon name={a.type === "video" ? "calendar" : a.type === "image" ? "user" : "clipboard-list"} class="size-12 text-muted-foreground" />
+              </div>
+              <div class="p-4">
+                <div class="flex items-center gap-2">
+                  <span class="chip chip-info">{a.category}</span>
+                  <span class="text-xs text-muted-foreground">{a.size}</span>
+                </div>
+                <p class="mt-2 truncate text-sm font-medium" title={a.name}>{a.name}</p>
+                <p class="text-xs text-muted-foreground">{formatDate(a.uploadedAt, "short")}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  )}
+
+  <!-- ─────────── TIMELINE ─────────── -->
+  {activeTab === "timeline" && (
+    <div class="mt-6 surface-card p-6">
+      <h2 class="border-b border-border pb-3 font-semibold">Línea de tiempo clínica</h2>
+      <ol class="timeline mt-5">
+        {[...patient.timeline].reverse().map((e) => (
+          <li class="timeline-item">
+            <div class="flex flex-wrap items-baseline gap-2">
+              <time class="font-mono text-xs text-muted-foreground">{formatDate(e.date, "datetime")}</time>
+              <span class="chip chip-primary">{e.type}</span>
+            </div>
+            <p class="mt-1 text-sm font-semibold">{e.title}</p>
+            {e.description && <p class="mt-0.5 text-sm text-muted-foreground">{e.description}</p>}
+            <p class="mt-0.5 text-xs text-muted-foreground">Por {e.author}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )}
+
+  <!-- ─────────── AUDITORÍA ─────────── -->
+  {activeTab === "auditoria" && (
+    <div class="mt-6 surface-card overflow-hidden p-0">
+      <header class="flex items-center justify-between border-b border-border p-4">
+        <div>
+          <h2 class="font-semibold">Registro de auditoría</h2>
+          <p class="text-xs text-muted-foreground">Bitácora inmutable de accesos y modificaciones</p>
+        </div>
+        <span class="chip chip-info">HIPAA · LFPDPPP · RGPD</span>
+      </header>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-muted/30 text-left">
+              <th class="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Fecha y hora</th>
+              <th class="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Usuario</th>
+              <th class="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Acción</th>
+              <th class="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Campo</th>
+              <th class="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Cambio</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {[...patient.audit].reverse().map((a) => (
+              <tr>
+                <td class="px-4 py-3 font-mono text-xs">{formatDate(a.timestamp, "datetime")}</td>
+                <td class="px-4 py-3 text-sm">{a.user}</td>
+                <td class="px-4 py-3">
+                  <span class="chip chip-neutral inline-flex items-center gap-1">
+                    <Icon name={auditIcon(a.action)} class="size-3" />
+                    {a.action}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-sm text-muted-foreground">{a.field ?? "—"}</td>
+                <td class="px-4 py-3 text-sm">
+                  {a.before && a.after ? (
+                    <span>
+                      <span class="text-muted-foreground line-through">{a.before}</span>
+                      {" → "}
+                      <span class="font-semibold">{a.after}</span>
+                    </span>
+                  ) : a.after ? (
+                    a.after
+                  ) : (
+                    "—"
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+</AdminLayout>

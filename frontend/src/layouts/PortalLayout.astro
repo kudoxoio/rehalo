@@ -1,0 +1,36 @@
+---
+/**
+ * PortalLayout.astro
+ *
+ * Layout para el portal del paciente.
+ * Similar a AdminLayout pero con la navegación del paciente.
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Sidebar from "@ui/sidebar/Sidebar.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const userName = Astro.cookies.get("rehalo_user_name")?.value ?? "Paciente";
+const userRole = "Paciente";
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="flex min-h-screen">
+    <Sidebar variant="portal" userName={userName} userRole={userRole} />
+
+    <div class="flex-1 md:ml-64">
+      <header class="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-border bg-background/80 px-6 backdrop-blur">
+        <slot name="topbar" />
+      </header>
+
+      <main id="main" class="flex-1 p-6 md:p-8">
+        <slot />
+      </main>
+    </div>
+  </div>
+</BaseLayout>
