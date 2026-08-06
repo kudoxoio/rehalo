@@ -1,5 +1,11 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* Las fonts (Inter, Instrument Serif, JetBrains Mono) se cargan vía
+   <link> en src/layouts/BaseLayout.astro (NO acá). El CSS optimizer
+   de Tailwind v4 reordena las reglas y deja el @import url() después
+   de `:root`, lo que viola la spec y tira warning. Cargarlas en HTML
+   además es mejor para performance: el browser empieza a bajarlas en
+   paralelo con el CSS en vez de en serie. */
 
 /* ───────────────────────────────────────────────────────────
    Rehalo Design Tokens

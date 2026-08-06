@@ -61,11 +61,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site).toString();
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- Fonts: Inter vía Google Fonts (caché) -->
+    <!-- Fonts: Inter + Instrument Serif + JetBrains Mono vía Google Fonts.
+         Cargadas como <link> en HTML (no vía @import en CSS) porque el CSS
+         optimizer de Tailwind v4 reordena reglas y deja los @import url()
+         después de :root, rompiendo la spec con warning. <link> además
+         paraleliza la descarga de fonts con la del CSS — mejor performance. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
 
