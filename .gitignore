@@ -33,6 +33,11 @@ pnpm-debug.log*
 # Vercel CLI cache
 .vercel/
 
+# Cloudflare / Wrangler local state
+.wrangler/
+.dev.vars
+.dev.vars.*
+
 # Playwright local artifacts
 .playwright-mcp/
 

@@ -1,0 +1,26 @@
+// Cloudflare Workers config for Rehalo.
+// Generated for the @astrojs/cloudflare adapter.
+// `astro build` produces a _worker.js that Wrangler picks up automatically.
+//
+// Deploy commands:
+//   pnpm install
+//   pnpm build
+//   wrangler deploy              # uses default config below
+//   wrangler dev                 # local dev with Workers runtime
+//
+// Custom domain / routes / bindings can be added under the keys below.
+// See https://developers.cloudflare.com/workers/wrangler/configuration/
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rehalo",
+  "compatibility_date": "2026-08-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./dist/_worker.js/index.js",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

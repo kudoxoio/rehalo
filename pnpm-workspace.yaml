@@ -26,11 +26,14 @@ shamefullyHoist: true
 #   - esbuild tiene un postinstall que baja el binario nativo
 #   - sharp tiene un postinstall que descarga/prepara el binario nativo
 #
-# Sintaxis `pkg@version || version: true` permite pinning de versiones
-# específicas que pueden ejecutar build scripts (defense in depth).
+# Sintaxis `pkg@version || version: true` permite pinning exacto de
+# versiones específicas que pueden ejecutar build scripts (defense in
+# depth contra supply-chain attacks que publican versiones maliciosas).
+# Las versiones pinned acá MATCH las del pnpm-lock.yaml para que no
+# se rompa el install al actualizar el lockfile.
 allowBuilds:
-  esbuild: true
-  sharp: true
+  esbuild@0.28.1: true
+  sharp@0.34.5 || 0.35.3: true
 
 # strictDepBuilds: cualquier paquete con build script que NO esté en
 # allowBuilds debe FALLAR con error, no warning silencioso. Esto
