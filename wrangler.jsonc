@@ -1,21 +1,29 @@
 // Cloudflare Workers config for Rehalo.
-// Generated for the @astrojs/cloudflare adapter.
-// `astro build` produces a _worker.js that Wrangler picks up automatically.
+//
+// Generated for the @astrojs/cloudflare adapter v14.x.
+//
+// IMPORTANT: This adapter NO LONGER supports Cloudflare Pages. The "main"
+// field points to the adapter package's bundled entrypoint, not to a
+// generated file under dist/. The adapter resolves Astro's SSR bundle at
+// runtime via the entrypoint's internal handler chain.
+//
+// Migrate from Pages → Workers: in the Cloudflare dashboard, disconnect the
+// Pages project and create a new Workers project pointing to this repo.
+// Pages will eventually be deprecated, and the adapter is built for Workers.
 //
 // Deploy commands:
 //   pnpm install
 //   pnpm build
-//   wrangler deploy              # uses default config below
+//   wrangler deploy              # uses config below
 //   wrangler dev                 # local dev with Workers runtime
 //
-// Custom domain / routes / bindings can be added under the keys below.
 // See https://developers.cloudflare.com/workers/wrangler/configuration/
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "rehalo",
+  "main": "@astrojs/cloudflare/entrypoints/server",
   "compatibility_date": "2026-08-06",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "./dist/_worker.js/index.js",
   "assets": {
     "binding": "ASSETS",
     "directory": "./dist"
