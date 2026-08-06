@@ -1,0 +1,353 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* ───────────────────────────────────────────────────────────
+   Rehalo Design Tokens
+   Documentación: DESIGN.md
+   Referencia visual obligatoria: dashboard_design.webp (raíz)
+   ─────────────────────────────────────────────────────────── */
+
+/* Token values como variables CSS "primitivas".
+   Se exponen a Tailwind vía `@theme inline` ABAJO (que SÍ sobrescribe
+   cualquier otro `@theme inline` que aparezca después de starwind.css
+   porque global.css se importa después). */
+:root {
+  /* ── Surfaces ──────────────────────────────────────── */
+  --background: 0 0% 96%;
+  --foreground: 222 47% 11%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+
+  /* ── Brand (LIME brillante estilo ACRU) ────────────── */
+  --primary: 88 75% 60%;                /* #9FE870 */
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 0 0% 12%;                /* #1F1F1F — botón Add widget */
+  --secondary-foreground: 0 0% 100%;
+
+  --accent: 88 80% 95%;                 /* #EFFAE0 */
+  --accent-foreground: 120 60% 25%;
+
+  /* ── States ────────────────────────────────────────── */
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 88 75% 60%;
+  --success-foreground: 120 60% 25%;
+
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+
+  --info: 217 91% 60%;
+  --info-foreground: 0 0% 100%;
+
+  /* ── Borders / Inputs ─────────────────────────────── */
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 88 75% 60%;
+
+  /* ── Radius ────────────────────────────────────────── */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius: 0.75rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  /* ── Shadows ───────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 8px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 24px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04);
+  --shadow-container: 0 8px 32px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04);
+
+  /* ── Layout ────────────────────────────────────────── */
+  --sidebar-width: 16rem;
+  --sidebar-width-collapsed: 4rem;
+  --topbar-height: 4rem;
+}
+
+/* Mapeo explícito a tokens de Tailwind v4 — `@theme inline` lee `var(--xxx)`.
+   Esto SOBRESCRIBE los valores que starwind.css haya puesto porque global.css
+   se importa DESPUÉS de starwind.css en BaseLayout.astro.
+
+   IMPORTANTE: los valores aquí se envuelven en `hsl(...)` para que la
+   utilidad `bg-primary` genere `background-color: hsl(var(--primary))`
+   (que es CSS válido). Sin el wrap, el browser ignora el valor porque
+   `88 75% 60%` por sí solo NO es un color CSS válido. */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Display serif para la landing — editorial minimalism (taste-skill) */
+  .font-serif,
+  .font-display {
+    font-family: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+    font-feature-settings: "liga", "kern";
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.15s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ───────────────────────────────────────────────────────────
+   Utilities — tokens reutilizables
+   ─────────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .font-mono {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .shadow-token-xs {
+    box-shadow: var(--shadow-xs);
+  }
+  .shadow-token-sm {
+    box-shadow: var(--shadow-sm);
+  }
+  .shadow-token-md {
+    box-shadow: var(--shadow-md);
+  }
+  .shadow-token-lg {
+    box-shadow: var(--shadow-lg);
+  }
+  .shadow-token-container {
+    box-shadow: var(--shadow-container);
+  }
+
+  .surface-card {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .kpi-display {
+    font-size: 2.5rem;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+    font-feature-settings: "tnum";
+  }
+
+  .delta-positive {
+    color: hsl(120 60% 30%);
+  }
+  .delta-positive::before {
+    content: "↑ ";
+  }
+  .delta-negative {
+    color: hsl(0 72% 45%);
+  }
+  .delta-negative::before {
+    content: "↓ ";
+  }
+}
+
+/* ───────────────────────────────────────────────────────────
+   Componentes reusables
+   ─────────────────────────────────────────────────────────── */
+@layer components {
+  .progress-track {
+    height: 8px;
+    background: hsl(var(--muted));
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: hsl(var(--primary));
+    border-radius: 9999px;
+    transition: width 200ms ease;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+  .chip-primary {
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+  .chip-success {
+    background: hsl(88 80% 92%);
+    color: hsl(120 60% 25%);
+  }
+  .chip-warning {
+    background: hsl(38 92% 92%);
+    color: hsl(28 80% 30%);
+  }
+  .chip-danger {
+    background: hsl(0 86% 95%);
+    color: hsl(0 72% 35%);
+  }
+  .chip-info {
+    background: hsl(217 91% 95%);
+    color: hsl(217 91% 35%);
+  }
+  .chip-neutral {
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+  }
+
+  .avatar-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 0.4375rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background: hsl(var(--border));
+  }
+  .timeline-item {
+    position: relative;
+    padding-bottom: 1.25rem;
+  }
+  .timeline-item:last-child {
+    padding-bottom: 0;
+  }
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -1.5rem;
+    top: 0.375rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    border: 2px solid hsl(var(--card));
+  }
+
+  .cal-event {
+    border-left-width: 3px;
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    font-size: 0.75rem;
+    line-height: 1.2;
+    overflow: hidden;
+  }
+  .cal-event-title {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .field-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+  }
+  .field-hint {
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .field-error {
+    font-size: 0.75rem;
+    color: hsl(var(--destructive));
+  }
+}

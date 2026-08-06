@@ -1,0 +1,787 @@
+---
+/**
+ * pages/index.astro — Landing pública
+ *
+ * Diseño: Editorial minimalism sobre el brand ACRU lime.
+ * - Display: serif editorial (Instrument Serif)
+ * - Body: grotesque (Inter)
+ * - Hairlines 1px, whitespace generoso, motion sutil con IntersectionObserver
+ * - Bento asimétrico, asymmetric hero (eyebrow + lede)
+ * - Stack de conversión: problema → solución → beneficios → ROI → CTA final con campo clave
+ *
+ * Pre-renderizada (prerender = true) → apta para GH Pages / static deploy.
+ */
+export const prerender = true;
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { actions, isInputError } from "astro:actions";
+import Icon from "@ui/Icon.astro";
+
+const result = Astro.getActionResult(actions.landing.contact);
+const inputErrors = result && isInputError(result.error) ? result.error.fields : {};
+---
+
+<BaseLayout
+  title="Rehalo — El sistema operativo para clínicas de fisioterapia"
+  description="Rehalo unifica agenda, historia clínica, planes de tratamiento, facturación e IA clínica. Menos documentación, más rehabilitación."
+>
+  <!-- ─────────────────────────────────────────────────────────────
+       NAVBAR — sticky pill, hairline border, backdrop blur
+       ───────────────────────────────────────────────────────────── -->
+  <header
+    class="sticky top-4 z-40 mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl rounded-full border border-border bg-card/80 px-4 py-2.5 backdrop-blur-md shadow-token-xs"
+  >
+    <nav class="flex items-center justify-between gap-4">
+      <a href="/" class="flex items-center gap-2">
+        <div
+          class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+        >
+          <Icon name="stethoscope" class="size-4" />
+        </div>
+        <span class="font-serif text-lg font-semibold tracking-tight">Rehalo</span>
+      </a>
+
+      <ul class="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
+        <li><a href="#problema" class="hover:text-foreground">El problema</a></li>
+        <li><a href="#solucion" class="hover:text-foreground">Cómo funciona</a></li>
+        <li><a href="#beneficios" class="hover:text-foreground">Beneficios</a></li>
+        <li><a href="#roi" class="hover:text-foreground">ROI</a></li>
+        <li><a href="#precio" class="hover:text-foreground">Precio</a></li>
+      </ul>
+
+      <div class="flex items-center gap-2">
+        <a
+          href="/login"
+          class="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
+        >
+          Iniciar sesión
+        </a>
+        <a
+          href="#contacto"
+          class="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          Agendar demo
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- ─────────────────────────────────────────────────────────────
+         HERO — asymmetric: serif display left, eyebrow + lede
+         ───────────────────────────────────────────────────────────── -->
+    <section class="relative pt-24 md:pt-32">
+      <div
+        aria-hidden="true"
+        class="absolute inset-x-0 -top-10 mx-auto h-72 max-w-3xl rounded-full bg-primary/20 blur-3xl"
+      >
+      </div>
+
+      <div class="container relative mx-auto px-6">
+        <div class="grid items-end gap-10 lg:grid-cols-[1.4fr_1fr]">
+          <div class="reveal">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground"
+            >
+              <span class="size-1.5 rounded-full bg-primary"></span>
+              Beta cerrada · IA clínica en español
+            </span>
+
+            <h1
+              class="mt-6 font-serif text-5xl font-medium leading-[1.05] tracking-[-0.025em] text-foreground md:text-7xl"
+            >
+              Menos historia clínica.<br />
+              <span class="text-primary">Más rehabilitación.</span>
+            </h1>
+
+            <p class="mt-6 max-w-[52ch] text-lg leading-relaxed text-muted-foreground">
+              Rehalo es el sistema operativo de tu clínica: agenda, historia
+              clínica, planes de tratamiento, facturación y un copiloto de IA que
+              redacta tus notas SOAP mientras atendés.
+            </p>
+
+            <div class="mt-10 flex flex-wrap items-center gap-3">
+              <a
+                href="#contacto"
+                class="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground shadow-token-sm transition-all hover:shadow-token-md"
+              >
+                Agendar demo gratis
+                <Icon name="arrow-right" class="size-4" />
+              </a>
+              <a
+                href="#solucion"
+                class="inline-flex h-12 items-center gap-2 rounded-full border border-border bg-card px-5 text-sm font-medium transition-colors hover:bg-accent"
+              >
+                Ver cómo funciona
+              </a>
+            </div>
+
+            <p class="mt-6 text-xs text-muted-foreground">
+              Setup en 14 días · Sin tarjeta · Soporte humano en español
+            </p>
+          </div>
+
+          <!-- Mockup visual del dashboard (inline, sin asset externo) -->
+          <div class="reveal hidden lg:block">
+            <div
+              class="relative rounded-2xl border border-border bg-card p-4 shadow-token-lg"
+            >
+              <div
+                class="flex items-center gap-2 border-b border-border pb-3"
+              >
+                <span class="size-2.5 rounded-full bg-destructive/40"></span>
+                <span class="size-2.5 rounded-full bg-warning/60"></span>
+                <span class="size-2.5 rounded-full bg-primary/60"></span>
+                <span class="ml-auto font-mono text-[10px] text-muted-foreground">
+                  rehalo.app/dashboard
+                </span>
+              </div>
+
+              <div class="mt-4 grid grid-cols-3 gap-3">
+                <div class="col-span-2 rounded-lg border border-border bg-muted/30 p-3">
+                  <p class="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Ocupación
+                  </p>
+                  <p class="mt-1 font-serif text-3xl font-medium text-primary">78%</p>
+                  <p class="mt-1 text-[10px] text-muted-foreground">↑ 5% vs semana anterior</p>
+                </div>
+                <div class="rounded-lg border border-border bg-primary/10 p-3">
+                  <p class="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Ingresos mes
+                  </p>
+                  <p class="mt-1 font-serif text-2xl font-medium">$45.2k</p>
+                </div>
+              </div>
+
+              <div class="mt-3 rounded-lg border border-border p-3">
+                <p class="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Próximas citas
+                </p>
+                <ul class="mt-2 space-y-1.5 text-xs">
+                  <li class="flex items-center gap-2">
+                    <span class="font-mono text-primary">10:30</span>
+                    <span class="text-foreground">Lucía Méndez</span>
+                    <span class="ml-auto text-muted-foreground">Box 2</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="font-mono text-primary">11:00</span>
+                    <span class="text-foreground">Carlos Pérez</span>
+                    <span class="ml-auto text-muted-foreground">Box 1</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="font-mono text-primary">12:30</span>
+                    <span class="text-foreground">Marta Rivas</span>
+                    <span class="ml-auto text-muted-foreground">Box 3</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div
+                aria-hidden="true"
+                class="absolute -bottom-6 -right-6 size-24 rounded-full bg-primary/30 blur-2xl"
+              >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         SOCIAL PROOF BAR — métricas concretas
+         ───────────────────────────────────────────────────────────── -->
+    <section class="border-y border-border bg-card/50 py-10">
+      <div class="container mx-auto px-6">
+        <dl class="grid grid-cols-2 gap-8 md:grid-cols-4">
+          {[
+            { kpi: "14 días", label: "Para salir en producción" },
+            { kpi: "−4 h/día", label: "Horas de documentación" },
+            { kpi: "+23%", label: "Adherencia al HEP" },
+            { kpi: "100%", label: "Cumplimiento HIPAA / RGPD" },
+          ].map((s) => (
+            <div class="reveal text-center md:text-left">
+              <dt class="font-serif text-3xl font-medium text-primary md:text-4xl">
+                {s.kpi}
+              </dt>
+              <dd class="mt-1 text-sm text-muted-foreground">{s.label}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         PROBLEMA — el dolor real del dueño de clínica
+         ───────────────────────────────────────────────────────────── -->
+    <section id="problema" class="py-24 md:py-32">
+      <div class="container mx-auto px-6">
+        <div class="mx-auto max-w-3xl reveal">
+          <span class="chip chip-warning">El problema</span>
+          <h2
+            class="mt-6 font-serif text-4xl font-medium leading-tight tracking-[-0.025em] md:text-5xl"
+          >
+            Tu clínica pierde tiempo y plata<br />
+            <span class="text-muted-foreground">en cosas que una máquina puede hacer.</span>
+          </h2>
+        </div>
+
+        <div class="mt-16 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3">
+          {[
+            {
+              title: "4 h/día en notas",
+              body: "Cada sesión se transforma en 30–60 min de redacción manual de SOAP. Terapeutas quemados, pacientes esperando.",
+              stat: "30 min",
+              statLabel: "por nota SOAP",
+            },
+            {
+              title: "47% abandona el HEP",
+              body: "Los pacientes no hacen los ejercicios en casa. Tu equipo los persigue por WhatsApp sin sistema.",
+              stat: "47%",
+              statLabel: "abandono promedio",
+            },
+            {
+              title: "Reclamar al seguro",
+              body: "Códigos CPT mal cargados, claims rechazados, conciliaciones que consumen al administrativo.",
+              stat: "$8k",
+              statLabel: "perdidos / mes",
+            },
+          ].map((p) => (
+            <div class="reveal bg-card p-8">
+              <h3 class="font-serif text-2xl font-medium">{p.title}</h3>
+              <p class="mt-3 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
+              <div class="mt-6 flex items-baseline gap-2 border-t border-border pt-4">
+                <span class="font-serif text-3xl font-medium text-primary">{p.stat}</span>
+                <span class="text-xs text-muted-foreground">{p.statLabel}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         SOLUCIÓN — cómo funciona, 3 pasos visuales
+         ───────────────────────────────────────────────────────────── -->
+    <section id="solucion" class="border-t border-border bg-muted/30 py-24 md:py-32">
+      <div class="container mx-auto px-6">
+        <div class="mx-auto max-w-2xl reveal">
+          <span class="chip chip-primary">Cómo funciona</span>
+          <h2 class="mt-6 font-serif text-4xl font-medium leading-tight tracking-[-0.025em] md:text-5xl">
+            Tres pasos. La clínica sigue igual.
+            <span class="text-muted-foreground">VOS mejor.</span>
+          </h2>
+        </div>
+
+        <ol class="mt-20 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3">
+          {[
+            {
+              n: "01",
+              t: "Conectá tu agenda actual",
+              d: "Importá pacientes desde Excel, Google Calendar o tu sistema anterior. Setup asistido por humanos en menos de 14 días.",
+              icon: "calendar-event",
+            },
+            {
+              n: "02",
+              t: "Atendé con el copiloto IA",
+              d: "Dictá o tipeá lo que observás. Rehalo redacta la nota SOAP estructurada y sugiere códigos CPT automáticamente.",
+              icon: "sparkles",
+            },
+            {
+              n: "03",
+              t: "Cobrá sin fricción",
+              d: "Facturación aprepadoras, claims automáticos al seguro, recordatorios de HEP por WhatsApp. Tu equipo se enfoca en pacientes.",
+              icon: "receipt",
+            },
+          ].map((s) => (
+            <li class="reveal bg-card p-8">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-sm text-muted-foreground">{s.n}</span>
+                <div class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Icon name={s.icon} class="size-5" />
+                </div>
+              </div>
+              <h3 class="mt-8 font-serif text-xl font-medium">{s.t}</h3>
+              <p class="mt-3 text-sm leading-relaxed text-muted-foreground">{s.d}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         BENEFICIOS — bento asimétrico con hairlines
+         ───────────────────────────────────────────────────────────── -->
+    <section id="beneficios" class="py-24 md:py-32">
+      <div class="container mx-auto px-6">
+        <div class="mx-auto max-w-2xl reveal">
+          <span class="chip chip-info">Beneficios</span>
+          <h2 class="mt-6 font-serif text-4xl font-medium leading-tight tracking-[-0.025em] md:text-5xl">
+            Lo que cambia<br />
+            <span class="text-muted-foreground">el día que arrancás.</span>
+          </h2>
+        </div>
+
+        <!-- Bento grid asimétrico (no 3 cards iguales) -->
+        <div class="mt-16 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3 md:grid-rows-[auto_auto]">
+          <!-- Card grande: 2 cols -->
+          <article class="reveal col-span-2 row-span-1 flex flex-col bg-card p-8 md:p-10">
+            <div class="flex items-center gap-3">
+              <div class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Icon name="clipboard-list" class="size-5" />
+              </div>
+              <span class="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                IA clínica
+              </span>
+            </div>
+            <h3 class="mt-6 font-serif text-3xl font-medium leading-tight">
+              Notas SOAP en 90 segundos,
+              <span class="text-primary">no en 30 minutos.</span>
+            </h3>
+            <p class="mt-4 max-w-prose text-sm leading-relaxed text-muted-foreground">
+              Dictá o tipeá lo que observaste. El copiloto estructura tu SOAP en
+              formato Subjectivo-Objetivo-Análisis-Plan, sugiere códigos CPT/ICD
+              y firma con tu identidad clínica. Auditable, editable, en español rioplatense.
+            </p>
+            <div class="mt-auto pt-6">
+              <div class="inline-flex items-center gap-3 rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs">
+                <Icon name="check" class="size-3.5 text-primary" />
+                <span>Antes: <span class="line-through text-muted-foreground">32 min</span></span>
+                <Icon name="arrow-right" class="size-3 text-muted-foreground" />
+                <span class="font-semibold text-foreground">Después: 90 seg</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card mediana -->
+          <article class="reveal flex flex-col bg-card p-8">
+            <div class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Icon name="barbell" class="size-5" />
+            </div>
+            <h3 class="mt-6 font-serif text-2xl font-medium">HEP con adherencia real.</h3>
+            <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Biblioteca de ejercicios, recordatorios por WhatsApp, dashboard de adherencia por paciente.
+            </p>
+            <p class="mt-auto pt-4 font-serif text-3xl font-medium text-primary">+23%</p>
+          </article>
+
+          <!-- Card mediana -->
+          <article class="reveal flex flex-col bg-card p-8">
+            <div class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Icon name="receipt" class="size-5" />
+            </div>
+            <h3 class="mt-6 font-serif text-2xl font-medium">Claims automáticos.</h3>
+            <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Códigos CPT/ICD validados antes del envío. Conciliación mensual en un click.
+            </p>
+            <p class="mt-auto pt-4 font-serif text-3xl font-medium text-primary">−87%</p>
+            <p class="text-xs text-muted-foreground">rechazos de seguro</p>
+          </article>
+
+          <!-- Card grande: 2 cols -->
+          <article class="reveal col-span-2 row-span-1 flex flex-col bg-card p-8 md:p-10">
+            <div class="flex items-center gap-3">
+              <div class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Icon name="chart-line" class="size-5" />
+              </div>
+              <span class="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                Analítica
+              </span>
+            </div>
+            <h3 class="mt-6 font-serif text-3xl font-medium leading-tight">
+              Anticipá el abandono<br />
+              <span class="text-muted-foreground">antes de que pase.</span>
+            </h3>
+            <p class="mt-4 max-w-prose text-sm leading-relaxed text-muted-foreground">
+              El modelo de adherencia detecta patrones (inasistencias, dolor creciente,
+              baja respuesta a mensajes) y avisa al coordinador quién necesita intervención.
+              Cada sesión queda comparada contra las anteriores para ver progreso real.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-2">
+              {["Predicción de abandono", "Alertas de dolor creciente", "Comparativa sesión a sesión", "Exportable a Excel"].map(
+                (tag) => (
+                  <span class="chip chip-neutral">{tag}</span>
+                ),
+              )}
+            </div>
+          </article>
+
+          <!-- Card compliance -->
+          <article class="reveal md:col-span-3 flex flex-col bg-card p-8 md:p-10">
+            <div class="flex items-center gap-4">
+              <div class="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <Icon name="shield-lock" class="size-6" />
+              </div>
+              <div>
+                <h3 class="font-serif text-2xl font-medium">Cumplimiento HIPAA y RGPD nativo.</h3>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  HL7 FHIR · cifrado AES-256 · auditoría bitácora · backups encriptados ·
+                  data residency configurable.
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         ROI — números que importan al dueño
+         ───────────────────────────────────────────────────────────── -->
+    <section id="roi" class="border-t border-border bg-muted/30 py-24 md:py-32">
+      <div class="container mx-auto px-6">
+        <div class="grid items-center gap-12 lg:grid-cols-2">
+          <div class="reveal">
+            <span class="chip chip-success">ROI</span>
+            <h2 class="mt-6 font-serif text-4xl font-medium leading-tight tracking-[-0.025em] md:text-5xl">
+              Tu clínica recupera
+              <span class="text-primary">$11.200 USD/mes</span><br />
+              en los primeros 90 días.
+            </h2>
+            <p class="mt-6 max-w-prose text-base leading-relaxed text-muted-foreground">
+              Cálculo conservador para una clínica de 6 terapeutas, basando en
+              horas de documentación recuperadas, mejor adherencia al HEP y
+              reducción de rechazos de seguro. Setup en 14 días, ROI positivo
+              desde el día 30.
+            </p>
+            <ul class="mt-8 space-y-3 text-sm">
+              {[
+                "4 h/día recuperadas por terapeuta → más sesiones facturables",
+                "23% más adherencia → menos abandonos, más LTV por paciente",
+                "87% menos rechazos → cash flow predecible",
+              ].map((b) => (
+                <li class="flex items-start gap-3">
+                  <Icon name="check" class="mt-0.5 size-4 shrink-0 text-primary" />
+                  <span class="text-muted-foreground">{b}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="reveal rounded-2xl border border-border bg-card p-8 shadow-token-md">
+            <div class="flex items-baseline justify-between border-b border-border pb-4">
+              <span class="text-sm font-medium">Inversión mensual</span>
+              <span class="font-serif text-3xl font-medium">$490</span>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between border-b border-border pb-4">
+              <span class="text-sm font-medium">Recuperado en tiempo</span>
+              <span class="font-serif text-2xl font-medium text-primary">+$7.800</span>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between border-b border-border pb-4">
+              <span class="text-sm font-medium">Recuperado en adherencia</span>
+              <span class="font-serif text-2xl font-medium text-primary">+$2.600</span>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between border-b border-border pb-4">
+              <span class="text-sm font-medium">Recuperado en rechazos</span>
+              <span class="font-serif text-2xl font-medium text-primary">+$800</span>
+            </div>
+            <div class="mt-6 flex items-baseline justify-between border-t border-border pt-4">
+              <span class="text-sm font-semibold">ROI neto mensual</span>
+              <span class="font-serif text-4xl font-medium text-primary">+12x</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         TESTIMONIAL — quote de un dueño real (mock)
+         ───────────────────────────────────────────────────────────── -->
+    <section class="border-t border-border py-24 md:py-32">
+      <div class="container mx-auto max-w-3xl px-6 text-center reveal">
+        <Icon name="sparkles" class="mx-auto size-8 text-primary" />
+        <blockquote class="mt-8 font-serif text-3xl font-medium leading-tight tracking-[-0.025em] md:text-4xl">
+          “Rehalo me devolvió las tardes. Antes me iba a las 21 hs
+          escribiendo SOAP. Ahora cierro la clínica a las 18 con todo firmado.”
+        </blockquote>
+        <figcaption class="mt-8 flex items-center justify-center gap-3">
+          <div class="avatar-fallback flex size-10 items-center justify-center text-sm">
+            DG
+          </div>
+          <div class="text-left">
+            <p class="text-sm font-semibold">Dra. Gabriela Suárez</p>
+            <p class="text-xs text-muted-foreground">Centro Kinésico · Buenos Aires</p>
+          </div>
+        </figcaption>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         PRECIO + FAQ
+         ───────────────────────────────────────────────────────────── -->
+    <section id="precio" class="border-t border-border bg-muted/30 py-24 md:py-32">
+      <div class="container mx-auto px-6">
+        <div class="grid gap-16 lg:grid-cols-2">
+          <div class="reveal">
+            <span class="chip chip-primary">Precio</span>
+            <h2 class="mt-6 font-serif text-4xl font-medium leading-tight tracking-[-0.025em] md:text-5xl">
+              Un precio.<br />
+              <span class="text-muted-foreground">Todo incluido.</span>
+            </h2>
+
+            <div class="mt-10 rounded-2xl border border-border bg-card p-8">
+              <p class="text-sm uppercase tracking-wider text-muted-foreground">Rehalo Pro</p>
+              <p class="mt-4 font-serif text-5xl font-medium tracking-tight">
+                $490<span class="text-base font-normal text-muted-foreground">/mes</span>
+              </p>
+              <p class="mt-2 text-sm text-muted-foreground">
+                Hasta 8 terapeutas. Setup y migración incluidos.
+              </p>
+              <ul class="mt-8 space-y-3 text-sm">
+                {[
+                  "Agenda + recordatorios WhatsApp",
+                  "Historia clínica con IA SOAP",
+                  "Planes HEP con adherencia",
+                  "Facturación a seguros y claims",
+                  "Analítica clínica + alertas",
+                  "Soporte humano en español",
+                  "Cumplimiento HIPAA / RGPD",
+                ].map((b) => (
+                  <li class="flex items-start gap-3">
+                    <Icon name="check" class="mt-0.5 size-4 shrink-0 text-primary" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              <a
+                href="#contacto"
+                class="mt-8 inline-flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground transition-all hover:shadow-token-md"
+              >
+                Agendar demo
+              </a>
+            </div>
+          </div>
+
+          <div class="reveal">
+            <span class="chip chip-neutral">Preguntas frecuentes</span>
+            <h2 class="mt-6 font-serif text-3xl font-medium leading-tight tracking-[-0.025em]">
+              Lo que más nos preguntan.
+            </h2>
+
+            <div class="mt-10 divide-y divide-border rounded-2xl border border-border bg-card">
+              {[
+                {
+                  q: "¿Cuánto tarda el setup?",
+                  a: "Entre 10 y 14 días. Nuestro equipo migra pacientes, agenda y obras sociales. Vos no tocás nada técnico.",
+                },
+                {
+                  q: "¿La IA reemplaza al fisioterapeuta?",
+                  a: "No. La IA redacta la nota que vos dirigís. Vos siempre firmás. Cada nota es auditable y editable.",
+                },
+                {
+                  q: "¿Funciona con mi sistema actual?",
+                  a: "Sí. Importamos desde Excel, Google Calendar, y los sistemas más usados en LATAM. Si tenés algo custom, evaluamos.",
+                },
+                {
+                  q: "¿Y si no me gusta?",
+                  a: "30 días de garantía. Devolvés sin preguntas.",
+                },
+                {
+                  q: "¿Cumple con HIPAA / RGPD?",
+                  a: "Sí. Cifrado AES-256, HL7 FHIR, data residency configurable, auditoría bitácora completa.",
+                },
+              ].map((f) => (
+                <details class="group p-6">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium">
+                    <span>{f.q}</span>
+                    <Icon
+                      name="chevron-right"
+                      class="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90"
+                    />
+                  </summary>
+                  <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    {f.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         CTA FINAL — Lead form con campos de calificación
+         ───────────────────────────────────────────────────────────── -->
+    <section id="contacto" class="py-24 md:py-32">
+      <div class="container mx-auto px-6">
+        <div class="grid items-start gap-12 lg:grid-cols-[1fr_1.1fr]">
+          <div class="reveal">
+            <span class="chip chip-primary">Próximo paso</span>
+            <h2 class="mt-6 font-serif text-4xl font-medium leading-tight tracking-[-0.025em] md:text-5xl">
+              30 minutos.<br />
+              <span class="text-primary">Tu clínica, en Rehalo.</span>
+            </h2>
+            <p class="mt-6 max-w-prose text-base leading-relaxed text-muted-foreground">
+              Te mostramos el sistema con tus propios casos. Sin slides, sin
+              guion. Coordinamos el demo según tu agenda y te decimos en vivo
+              cuánto tiempo recuperarías.
+            </p>
+
+            <ul class="mt-10 space-y-4 text-sm">
+              {[
+                "Demo en vivo con tu flujo de trabajo real",
+                "Setup y migración incluidos, sin costo extra",
+                "30 días de garantía una vez que arrancás",
+              ].map((b, i) => (
+                <li class="flex items-start gap-3">
+                  <span class="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary bg-primary/10 font-mono text-xs text-primary">
+                    {i + 1}
+                  </span>
+                  <span class="text-muted-foreground">{b}</span>
+                </li>
+              ))}
+            </ul>
+
+            <p class="mt-10 font-mono text-xs text-muted-foreground">
+              rehalo.app · soporte@rehalo.app · +54 11 5555-5555
+            </p>
+          </div>
+
+          <div class="reveal rounded-2xl border border-border bg-card p-8 shadow-token-md">
+            {result?.data?.ok && (
+              <div class="mb-6 rounded-md border border-primary/20 bg-accent p-4 text-sm text-accent-foreground">
+                ¡Listo! Te contactamos en menos de 24 h para coordinar el demo.
+              </div>
+            )}
+            {result?.error && !isInputError(result.error) && (
+              <div class="mb-6 rounded-md border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+                {result.error.message}
+              </div>
+            )}
+
+            <form method="POST" action={actions.landing.contact} class="space-y-5">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="field">
+                  <label class="field-label" for="name">Nombre</label>
+                  <input
+                    id="name"
+                    name="name"
+                    required
+                    placeholder="Dra. Gabriela Suárez"
+                    class="h-11 rounded-md border border-input bg-background px-3 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+                  />
+                  {inputErrors?.name && <p class="field-error">{inputErrors.name[0]}</p>}
+                </div>
+                <div class="field">
+                  <label class="field-label" for="email">Email profesional</label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="gba@tuclinica.com"
+                    class="h-11 rounded-md border border-input bg-background px-3 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+                  />
+                  {inputErrors?.email && <p class="field-error">{inputErrors.email[0]}</p>}
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="field">
+                  <label class="field-label" for="clinicName">Clínica</label>
+                  <input
+                    id="clinicName"
+                    name="clinicName"
+                    placeholder="Centro Kinésico"
+                    class="h-11 rounded-md border border-input bg-background px-3 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+                  />
+                </div>
+                <div class="field">
+                  <label class="field-label" for="cliniciansCount">Terapeutas</label>
+                  <select
+                    id="cliniciansCount"
+                    name="cliniciansCount"
+                    class="h-11 rounded-md border border-input bg-background px-3 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+                  >
+                    <option value="">Elegí un rango</option>
+                    <option value="1-2">1 a 2</option>
+                    <option value="3-5">3 a 5</option>
+                    <option value="6-10">6 a 10</option>
+                    <option value="10+">10 o más</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="message">
+                  ¿Qué te quita más tiempo hoy?
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows="3"
+                  required
+                  placeholder="Documentación, adherencia, facturación, agenda..."
+                  class="rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+                ></textarea>
+                {inputErrors?.message && <p class="field-error">{inputErrors.message[0]}</p>}
+              </div>
+
+              <button
+                type="submit"
+                class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-medium text-primary-foreground shadow-token-sm transition-all hover:shadow-token-md"
+              >
+                Quiero el demo
+                <Icon name="arrow-right" class="size-4" />
+              </button>
+              <p class="text-center text-xs text-muted-foreground">
+                Te respondemos en menos de 24 h. Sin spam.
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  // ─── Scroll reveal (IntersectionObserver, ambient motion) ──────
+  const items = document.querySelectorAll<HTMLElement>(".reveal");
+
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement;
+            const siblings = Array.from(
+              el.parentElement?.querySelectorAll<HTMLElement>(".reveal") ?? [],
+            );
+            const idx = siblings.indexOf(el);
+            el.style.transitionDelay = `${Math.max(0, idx) * 60}ms`;
+            el.classList.add("revealed");
+            io.unobserve(el);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
+    );
+    items.forEach((it) => io.observe(it));
+  } else {
+    items.forEach((it) => it.classList.add("revealed"));
+  }
+</script>
+
+<style>
+  /* Scroll reveal — solo transform + opacity, 600ms cubic-bezier */
+  .reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 600ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+</style>

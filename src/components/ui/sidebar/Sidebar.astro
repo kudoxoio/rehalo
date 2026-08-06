@@ -46,14 +46,6 @@ const portalNav: NavItem[] = [
 
 const nav = variant === "admin" ? adminNav : portalNav;
 const currentPath = Astro.url.pathname;
-
-// Iniciales para avatar fallback
-const initials = userName
-  .split(/\s+/)
-  .map((p) => p[0])
-  .join("")
-  .slice(0, 2)
-  .toUpperCase();
 ---
 
 <aside
@@ -76,17 +68,17 @@ const initials = userName
   </div>
 
   <!-- Navigation -->
-  <nav class="flex-1 space-y-0.5 overflow-y-auto p-3">
+  <nav class="flex-1 space-y-1 overflow-y-auto p-3">
     {nav.map((item) => {
       const active = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href + "/"));
       return (
         <a
           href={item.href}
           class:list={[
-            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            "group relative flex items-center gap-3 rounded-r-md rounded-l-sm border-l-2 px-3 py-2 text-sm font-medium transition-colors",
             active
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              ? "border-primary bg-accent text-accent-foreground"
+              : "border-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground",
           ]}
           aria-current={active ? "page" : undefined}
           title={item.label}
@@ -118,57 +110,7 @@ const initials = userName
     <span class="nav-text">Colapsar sidebar</span>
   </button>
 
-  <!-- User footer with dropdown -->
-  <div class="border-t border-border p-3">
-    <div class="relative">
-      <button
-        id="user-menu-trigger"
-        type="button"
-        class="flex w-full items-center gap-3 rounded-lg px-2 py-2 hover:bg-accent"
-        aria-haspopup="menu"
-        aria-expanded="false"
-      >
-        <div class="avatar-fallback flex size-9 shrink-0 items-center justify-center text-sm">
-          {initials || "U"}
-        </div>
-        <div class="nav-text min-w-0 flex-1 text-left">
-          <p class="truncate text-sm font-semibold text-foreground">{userName}</p>
-          <p class="truncate text-xs text-muted-foreground">{userEmail || userRole}</p>
-        </div>
-        <svg class="nav-text size-4 shrink-0 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-
-      <!-- Dropdown menu -->
-      <div
-        id="user-menu"
-        role="menu"
-        class="user-menu-popover hidden w-56 rounded-lg border border-border bg-popover p-1.5 shadow-lg"
-      >
-        <div class="border-b border-border px-3 py-2">
-          <p class="text-sm font-semibold text-popover-foreground">{userName}</p>
-          <p class="truncate text-xs text-muted-foreground">{userEmail || userRole}</p>
-        </div>
-        <a
-          href="/dashboard/settings"
-          role="menuitem"
-          class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-popover-foreground hover:bg-accent"
-        >
-          <Icon name="settings" class="size-4" />
-          Configuración
-        </a>
-        <a
-          href="/logout"
-          role="menuitem"
-          class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
-        >
-          <Icon name="logout" class="size-4" />
-          Cerrar sesión
-        </a>
-      </div>
-    </div>
-  </div>
+  <!-- User info eliminada: el user menu vive solo en el Topbar -->
 </aside>
 
 <script>
@@ -208,41 +150,7 @@ const initials = userName
     }
   } catch {}
 
-  // ─── User dropdown ────────────────────────────────────────
-  const userTrigger = document.getElementById("user-menu-trigger");
-  const userMenu = document.getElementById("user-menu");
-
-  function closeUserMenu() {
-    if (!userMenu || !userTrigger) return;
-    userMenu.classList.add("hidden");
-    userTrigger.setAttribute("aria-expanded", "false");
-  }
-
-  if (userTrigger && userMenu) {
-    userTrigger.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const isOpen = !userMenu.classList.contains("hidden");
-      if (isOpen) {
-        closeUserMenu();
-      } else {
-        userMenu.classList.remove("hidden");
-        userTrigger.setAttribute("aria-expanded", "true");
-      }
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!userMenu.classList.contains("hidden")) {
-        const target = e.target as Node;
-        if (!userMenu.contains(target) && !userTrigger.contains(target)) {
-          closeUserMenu();
-        }
-      }
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeUserMenu();
-    });
-  }
+  // User dropdown eliminado: vive solo en el Topbar
 </script>
 
 <style>
@@ -262,17 +170,5 @@ const initials = userName
     justify-content: center;
     padding-left: 0.25rem;
     padding-right: 0.25rem;
-  }
-
-  /* Popover del menú de usuario — anclado arriba del trigger */
-  #user-menu {
-    position: absolute;
-    bottom: calc(100% + 0.5rem);
-    left: 0;
-    right: 0;
-  }
-  .app-sidebar[data-collapsed="true"] #user-menu {
-    left: calc(100% + 0.5rem);
-    bottom: 0;
   }
 </style>

@@ -1,0 +1,159 @@
+---
+/**
+ * Topbar.astro — header sticky estilo ACRU.
+ *
+ * Estructura (de izquierda a derecha):
+ *   [ spacer ]                                    [ Bell ] [ Settings ]      [ Avatar + nombre + email ▾ ]
+ *
+ * El user del topbar es un DROPDOWN idéntico al del Sidebar:
+ *   - Cabecera con nombre + email
+ *   - Configuración → /dashboard/settings
+ *   - Cerrar sesión → /logout
+ *
+ * Props:
+ *  - userName, userEmail → info del usuario logueado (header derecho)
+ *  - variant → ajusta colores si es admin o portal
+ */
+import Icon from "@ui/Icon.astro";
+
+interface Props {
+  userName: string;
+  userEmail?: string;
+  variant?: "admin" | "portal";
+}
+
+const {
+  userName,
+  userEmail = "",
+  variant = "admin",
+} = Astro.props;
+
+// Iniciales para avatar fallback
+const initials = userName
+  .split(/\s+/)
+  .map((p) => p[0])
+  .join("")
+  .slice(0, 2)
+  .toUpperCase();
+---
+
+<header
+  id="app-topbar"
+  class="topbar sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-border bg-card px-6"
+  data-variant={variant}
+>
+  <!-- Spacer (alinea todo al final) -->
+  <div class="flex-1"></div>
+
+  <!-- Acciones rápidas (alineadas al final) -->
+  <div class="flex items-center gap-1">
+    <button
+      type="button"
+      aria-label="Notificaciones"
+      class="topbar-icon-btn relative inline-flex size-10 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+    >
+      <Icon name="bell" class="size-5" />
+      <!-- Indicador (punto rojo) cuando hay notificaciones — opcional -->
+      <span class="absolute right-2 top-2 size-1.5 rounded-full bg-destructive" aria-hidden="true"></span>
+    </button>
+    <button
+      type="button"
+      aria-label="Configuración"
+      class="topbar-icon-btn inline-flex size-10 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+    >
+      <Icon name="settings" class="size-5" />
+    </button>
+  </div>
+
+  <!-- User dropdown (mismo patrón que Sidebar) -->
+  <div class="relative">
+    <button
+      id="topbar-user-trigger"
+      type="button"
+      class="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent"
+      aria-haspopup="menu"
+      aria-expanded="false"
+    >
+      <div class="avatar-fallback flex size-8 shrink-0 items-center justify-center text-xs">
+        {initials || "U"}
+      </div>
+      <div class="hidden text-left sm:block">
+        <p class="text-sm font-medium leading-tight text-foreground">{userName}</p>
+        {userEmail && (
+          <p class="truncate text-xs leading-tight text-muted-foreground">{userEmail}</p>
+        )}
+      </div>
+      <svg class="hidden size-4 shrink-0 text-muted-foreground sm:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </button>
+
+    <!-- Dropdown menu -->
+    <div
+      id="topbar-user-menu"
+      role="menu"
+      class="user-menu-popover absolute right-0 top-full mt-2 hidden w-56 rounded-lg border border-border bg-popover p-1.5 shadow-lg"
+    >
+      <div class="border-b border-border px-3 py-2">
+        <p class="text-sm font-semibold text-popover-foreground">{userName}</p>
+        {userEmail && (
+          <p class="truncate text-xs text-muted-foreground">{userEmail}</p>
+        )}
+      </div>
+      <a
+        href="/dashboard/settings"
+        role="menuitem"
+        class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-popover-foreground hover:bg-accent"
+      >
+        <Icon name="settings" class="size-4" />
+        Configuración
+      </a>
+      <a
+        href="/logout"
+        role="menuitem"
+        class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+      >
+        <Icon name="logout" class="size-4" />
+        Cerrar sesión
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  // ─── User dropdown (mismo patrón que Sidebar) ─────────────
+  const trigger = document.getElementById("topbar-user-trigger");
+  const menu = document.getElementById("topbar-user-menu");
+
+  function closeMenu() {
+    if (!menu || !trigger) return;
+    menu.classList.add("hidden");
+    trigger.setAttribute("aria-expanded", "false");
+  }
+
+  if (trigger && menu) {
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = !menu.classList.contains("hidden");
+      if (isOpen) {
+        closeMenu();
+      } else {
+        menu.classList.remove("hidden");
+        trigger.setAttribute("aria-expanded", "true");
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!menu.classList.contains("hidden")) {
+        const target = e.target as Node;
+        if (!menu.contains(target) && !trigger.contains(target)) {
+          closeMenu();
+        }
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMenu();
+    });
+  }
+</script>

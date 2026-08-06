@@ -1,15 +1,16 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
-import node from "@astrojs/node";
+import vercel from "@astrojs/vercel";
 import react from "@astrojs/react";
 
 // Astro 7 — modo "server" con prerendering opt-in por página.
 // Las páginas estáticas (landing) usan `export const prerender = true`.
-// Los endpoints server-side (login, API) se renderizan bajo demanda.
+// Los endpoints server-side (login, API) se renderizan bajo demanda como
+// funciones serverless de Vercel.
 export default defineConfig({
   output: "server",
-  adapter: node({ mode: "standalone" }),
+  adapter: vercel(),
   integrations: [react()],
   site: "https://rehalo.app",
   server: {

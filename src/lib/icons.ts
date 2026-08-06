@@ -41,6 +41,7 @@ import mail from "../../node_modules/@tabler/icons/icons/outline/mail.svg?raw";
 import brandWhatsapp from "../../node_modules/@tabler/icons/icons/outline/brand-whatsapp.svg?raw";
 import bellRinging from "../../node_modules/@tabler/icons/icons/outline/bell-ringing.svg?raw";
 import bellOff from "../../node_modules/@tabler/icons/icons/outline/bell-off.svg?raw";
+import bell from "../../node_modules/@tabler/icons/icons/outline/bell.svg?raw";
 import receipt from "../../node_modules/@tabler/icons/icons/outline/receipt.svg?raw";
 import settings from "../../node_modules/@tabler/icons/icons/outline/settings.svg?raw";
 import logout from "../../node_modules/@tabler/icons/icons/outline/logout.svg?raw";
@@ -110,6 +111,7 @@ const ICONS: Record<string, string> = {
   "brand-whatsapp": brandWhatsapp,
   "bell-ringing": bellRinging,
   "bell-off": bellOff,
+  bell,
   receipt,
   settings,
   logout,

@@ -1,0 +1,69 @@
+---
+/**
+ * AdminLayout.astro
+ *
+ * Layout para todas las páginas del dashboard administrativo.
+ *
+ * Estructura (estilo ACRU):
+ *   ┌─ background gris neutro ─────────────────────────────────┐
+ *   │  ┌─ Sidebar (fixed, w-64, blanco) ─┬─ Main area ───────┐ │
+ *   │  │                                  │ ┌─ Topbar (sticky) ┐│ │
+ *   │  │                                  │ │ search/bell/user ││ │
+ *   │  │                                  │ ├──────────────────┤│ │
+ *   │  │                                  │ │ page content     ││ │
+ *   │  │                                  │ └──────────────────┘│ │
+ *   │  └──────────────────────────────────┴────────────────────┘ │
+ *   └────────────────────────────────────────────────────────────┘
+ *
+ * - Sidebar blanca colapsable (ver Sidebar.astro).
+ * - Topbar sticky estilo ACRU con search + bell + settings + user + Add widget.
+ * - Slot por defecto: contenido de la página.
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Sidebar from "@ui/sidebar/Sidebar.astro";
+import Topbar from "@ui/topbar/Topbar.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const userName = Astro.cookies.get("rehalo_user_name")?.value ?? "Equipo";
+const userRole =
+  Astro.cookies.get("rehalo_role")?.value === "therapist"
+    ? "Fisioterapeuta"
+    : "Administrador";
+const userEmail =
+  Astro.cookies.get("rehalo_user_name")?.value?.toLowerCase().replace(/\s+/g, ".") +
+  "@rehalo.app";
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="flex min-h-screen">
+    <Sidebar
+      variant="admin"
+      userName={userName}
+      userRole={userRole}
+      userEmail={userEmail}
+    />
+
+    <main
+      id="admin-main-wrap"
+      class="admin-main flex-1 md:ml-64 flex min-h-screen flex-col"
+    >
+      <Topbar
+        userName={userName}
+        userEmail={userEmail}
+        variant="admin"
+      />
+
+      <div class="admin-content flex-1 px-6 py-6">
+        <div class="mx-auto w-full max-w-[1440px]">
+          <slot />
+        </div>
+      </div>
+    </main>
+  </div>
+</BaseLayout>

@@ -31,12 +31,16 @@ const progreso = {
 ---
 
 <PortalLayout title="Mi portal — Rehalo">
-  <div slot="topbar">
-    <h1 class="text-xl font-semibold tracking-tight">Hola, ¿cómo te sentís hoy?</h1>
+  <!-- Greeting -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold tracking-tight">Hola, ¿cómo te sentís hoy?</h1>
+    <p class="mt-1 text-sm text-muted-foreground">
+      Acá está tu resumen del día
+    </p>
   </div>
 
   <!-- Próxima cita -->
-  <section class="rounded-lg border border-border bg-card p-6">
+  <section class="surface-card p-6">
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div class="flex gap-4">
         <div class="flex size-12 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -65,14 +69,14 @@ const progreso = {
 
   <!-- Plan HEP del día + Progreso -->
   <div class="mt-6 grid gap-6 lg:grid-cols-3">
-    <div class="rounded-lg border border-border bg-card lg:col-span-2">
-      <div class="flex items-center justify-between border-b border-border p-4">
+    <div class="surface-card lg:col-span-2">
+      <div class="flex items-center justify-between border-b border-border px-6 py-4">
         <h2 class="font-semibold">Tu plan de hoy</h2>
         <span class="text-xs text-muted-foreground">1 de 3 completado</span>
       </div>
       <ul class="divide-y divide-border">
         {planHoy.map((e) => (
-          <li class="flex items-center gap-4 p-4">
+          <li class="flex items-center gap-4 px-6 py-4">
             <div class={`flex size-8 items-center justify-center rounded-full ${e.completado ? "bg-primary text-primary-foreground" : "border border-border"}`}>
               {e.completado ? <Icon name="check" class="size-4" /> : <Icon name="barbell" class="size-4" />}
             </div>
@@ -90,7 +94,7 @@ const progreso = {
       </ul>
     </div>
 
-    <div class="rounded-lg border border-border bg-card p-6">
+    <div class="surface-card p-6">
       <h2 class="font-semibold">Tu progreso</h2>
       <p class="mt-1 text-sm text-muted-foreground">12 sesiones completadas</p>
 

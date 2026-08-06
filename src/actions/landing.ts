@@ -22,6 +22,11 @@ export const landing = {
       name: z.string().min(2, "Mínimo 2 caracteres"),
       email: z.string().email("Email inválido"),
       clinicName: z.string().optional(),
+      // Calificación de lead: tamaño de la clínica (opcional)
+      cliniciansCount: z
+        .enum(["1-2", "3-5", "6-10", "10+"])
+        .optional()
+        .or(z.literal("")),
       message: z.string().min(10, "Cuéntanos un poco más"),
     }),
     handler: async (input, context) => {

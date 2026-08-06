@@ -1,41 +1,43 @@
+# Build output
+dist/
+.astro/
+
 # Dependencies
 node_modules/
-.pnp
-.pnp.js
+.pnpm-store/
 
-# Build outputs
-dist/
-build/
-.astro/
-.starwind/
-.vite/
-.turbo/
-
-# Cache & logs
-*.log
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-.cache/
-.parcel-cache/
 
-# Environment files
+# Environment variables
 .env
+.env.production
 .env.local
 .env.*.local
 
-# Editor / OS
+# macOS-specific files
 .DS_Store
+
+# JetBrains / VSCode
 .idea/
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 
-# Testing
-coverage/
+# Starwind UI cache
+.starwind/
+
+# Vercel CLI cache
+.vercel/
+
+# Playwright local artifacts
 .playwright-mcp/
 
-# Misc
+# Local screenshots (Playwright debugging, design exploration)
+*.png
+
+# TypeScript build info
 *.tsbuildinfo
-.pnpm-store/

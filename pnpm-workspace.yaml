@@ -1,0 +1,33 @@
+# pnpm workspace config for Rehalo frontend (single-package project).
+#
+# shamefullyHoist: true forces pnpm to flatten node_modules and put every
+# binary (including `astro`) in the top-level node_modules/.bin/. Vercel's
+# build step auto-detects Astro and runs `astro build` directly (not via
+# `pnpm run build`), so the binary MUST be on the standard PATH. Without
+# shamefullyHoist, pnpm's default isolated linker keeps astro buried in
+# node_modules/.pnpm/astro@.../node_modules/.bin/ and the build fails
+# with `astro: command not found`.
+#
+# Note: this setting is NOT read from .npmrc — it must live in
+# pnpm-workspace.yaml (or ~/.config/pnpm/config.yaml). The previous
+# attempt with public-hoist-pattern in .npmrc was silently ignored.
+
+packages:
+  - "."
+
+shamefullyHoist: true
+
+# allowBuilds: whitelist explícito de paquetes con postinstall scripts.
+# Bloquea TODO lo demás por default en pnpm 10+ (supply-chain hardening).
+# esbuild y sharp son necesarios porque:
+#   - esbuild tiene un postinstall que baja el binario nativo
+#   - sharp tiene un postinstall que descarga/prepara el binario nativo
+allowBuilds:
+  esbuild: true
+  sharp: true
+
+# strictDepBuilds: cualquier paquete con build script que NO esté en
+# allowBuilds debe FALLAR con error, no warning silencioso. Esto
+# garantiza que si una dependencia nueva empieza a correr postinstall
+# scripts, el build rompe en vez de ejecutarlo ciegamente.
+strictDepBuilds: true
