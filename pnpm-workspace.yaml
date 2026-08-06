@@ -22,9 +22,12 @@ shamefullyHoist: true
 # con una sintaxis más flexible (Record<name, boolean | version-pins>).
 # Bloquea TODO lo demás por default en pnpm 10+ (supply-chain hardening).
 #
-# esbuild y sharp son necesarios porque:
-#   - esbuild tiene un postinstall que baja el binario nativo
-#   - sharp tiene un postinstall que descarga/prepara el binario nativo
+# Paquetes whitelisted y por qué:
+#   - esbuild: postinstall baja el binario nativo de bundling
+#   - sharp: postinstall descarga/prepara el binario nativo de image processing
+#   - workerd: postinstall baja el binario del runtime de Cloudflare Workers.
+#     SIN esto, el deploy a Cloudflare Workers falla porque el runtime
+#     no se puede inicializar. Mantenido por Cloudflare mismo (oficial).
 #
 # Sintaxis `pkg@version || version: true` permite pinning exacto de
 # versiones específicas que pueden ejecutar build scripts (defense in
@@ -34,6 +37,7 @@ shamefullyHoist: true
 allowBuilds:
   esbuild@0.28.1: true
   sharp@0.34.5 || 0.35.3: true
+  workerd@1.20260801.1: true
 
 # strictDepBuilds: cualquier paquete con build script que NO esté en
 # allowBuilds debe FALLAR con error, no warning silencioso. Esto
