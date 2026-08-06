@@ -17,24 +17,23 @@ packages:
 
 shamefullyHoist: true
 
-# onlyBuiltDependencies: whitelist explícito de paquetes con postinstall
-# scripts. Bloquea TODO lo demás por default en pnpm 10+ (supply-chain
-# hardening). esbuild y sharp son necesarios porque:
+# allowBuilds: whitelist explícito de paquetes con postinstall scripts.
+# Introducida en pnpm@10.26.0, reemplaza la legacy `onlyBuiltDependencies`
+# con una sintaxis más flexible (Record<name, boolean | version-pins>).
+# Bloquea TODO lo demás por default en pnpm 10+ (supply-chain hardening).
+#
+# esbuild y sharp son necesarios porque:
 #   - esbuild tiene un postinstall que baja el binario nativo
 #   - sharp tiene un postinstall que descarga/prepara el binario nativo
 #
-# NOTE: usamos `onlyBuiltDependencies` (legacy syntax) en vez de
-# `allowBuilds` (modern) porque solo soportamos pnpm@10.11.0 acá
-# (lockfileVersion 9.0 + lockfile no regenerado). `allowBuilds` se
-# introdujo en pnpm@10.26.0. Para migrar a la sintaxis moderna,
-# upgradear pnpm a >= 10.26.0 y regenerar el lockfile con
-# `pnpm install --lockfile-only`.
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
+# Sintaxis `pkg@version || version: true` permite pinning de versiones
+# específicas que pueden ejecutar build scripts (defense in depth).
+allowBuilds:
+  esbuild: true
+  sharp: true
 
 # strictDepBuilds: cualquier paquete con build script que NO esté en
-# onlyBuiltDependencies debe FALLAR con error, no warning silencioso.
-# Esto garantiza que si una dependencia nueva empieza a correr
-# postinstall scripts, el build rompe en vez de ejecutarlo ciegamente.
+# allowBuilds debe FALLAR con error, no warning silencioso. Esto
+# garantiza que si una dependencia nueva empieza a correr postinstall
+# scripts, el build rompe en vez de ejecutarlo ciegamente.
 strictDepBuilds: true
